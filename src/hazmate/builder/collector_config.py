@@ -1,5 +1,7 @@
-from typing import Annotated
+from pathlib import Path
+from typing import Annotated, Self
 
+import yaml
 from pydantic import BaseModel, Field
 
 from hazmate.builder.queries.categories import CategorySimple
@@ -41,3 +43,8 @@ class CollectorConfig(BaseModel):
         tuple[CategoryConfig, ...],
         Field(description="The categories to collect."),
     ]
+
+    @classmethod
+    def from_yaml(cls, path: Path) -> Self:
+        with open(path, "r") as f:
+            return cls.model_validate(yaml.safe_load(f))

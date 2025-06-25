@@ -75,11 +75,10 @@ class SearchResponse(BaseModel):
     used_attributes: list[Any]
 
 
-def search_items(
+def search_products(
     session: OAuth2Session,
     query: str,
     site_id: SiteId,
-    category_id: str | None = None,
     limit: int | None = None,
     offset: int | None = None,
 ) -> SearchResponse:
@@ -89,8 +88,6 @@ def search_items(
         "site_id": site_id.value,
     }
 
-    if category_id is not None:
-        params["category"] = category_id
     if limit is not None:
         params["limit"] = limit
     if offset is not None:
@@ -118,7 +115,7 @@ def search_products_paginated(
     """
     offset = 0
     while True:
-        response = search_items(session, query, site_id, limit, offset)
+        response = search_products(session, query, site_id, limit, offset)
         yield response
         offset += response.paging.limit
         if offset >= response.paging.total:

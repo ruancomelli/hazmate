@@ -1,5 +1,5 @@
-from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.auth import start_oauth_session
+from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.queries.base import SiteId
 from hazmate.builder.queries.search import search_products_paginated
 
@@ -9,7 +9,11 @@ def main():
 
     with start_oauth_session(config) as session:
         for index, response in enumerate(
-            search_products_paginated(session, "carrinho de bebe", SiteId.BRAZIL),
+            search_products_paginated(
+                session,
+                "dinossauro",
+                SiteId.BRAZIL,
+            ),
         ):
             print(index, "->", response.results[0].name)
 
