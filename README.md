@@ -2,9 +2,15 @@
 
 ![Project Hero](assets/hero.png)
 
-## Overview
+This project is a take-home test for the GenAI positions at IT Hazmat.
 
-## Feedback
+The solution repository is available at https://github.com/ruancomelli/hazmate.
+
+<!-- TODO: make this repo public! -->
+
+<!-- TODO: extend this section -->
+
+<!-- TODO: create more sections for each part of the project -->
 
 ## Devlog
 
@@ -22,15 +28,42 @@ I also ended up using a local server to receive the access token and refresh tok
 
 #### Interacting with the API
 
-To build the dataset, I will send requests to two Meli API endpoints:
+To build the dataset, I will send requests to several Meli API endpoints:
 
 - `https://api.mercadolibre.com/products/search`
 - `https://api.mercadolibre.com/products/$PRODUCT_ID`
+- `https://api.mercadolibre.com/sites/$SITE_ID/categories`
+- `https://api.mercadolibre.com/categories/$CATEGORY_ID`
+- `https://api.mercadolibre.com/categories/$CATEGORY_ID/attributes`
 
 In order to build type-safe queries, I created a `pydantic` model for each endpoint by first sending sample queries to the API, saving the responses to a file, and then asking Cursor to create the relevant Pydantic models. See the conversation in [`cursor-chats/cursor_create_pydantic_model_for_mercad.md`](cursor-chats/cursor_create_pydantic_model_for_mercad.md).
 
-See [`examples/search_query.py`](examples/search_query.py) and [`examples/search_query_paginated.py`](examples/search_query_paginated.py) for examples of how to use the type-safe search query.
+See [`examples/queries`](examples/queries) for examples of how to use the type-safe queries.
 
 #### Building the dataset
 
-<!-- TODO -->
+<!--
+TODO:
+
+### Inference
+
+### Evaluation
+
+### Deployment
+
+### Updating
+-->
+
+<!-- TODO: write the following in a readable and structured way:
+
+I am not much worried about catastrophic forgetting because:
+
+- I am not fine-tuning models
+- I am not chaining messages indefinitely (as would happen in a chatbot)
+- ...?
+
+ -->
+
+## Feedback
+
+<!-- TODO: give them some feedback on the challenge? -->

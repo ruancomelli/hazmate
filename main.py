@@ -1,13 +1,17 @@
-from pprint import pprint
-from typing import Any
+from pathlib import Path
 
-from hazmate_builder.app_config import AppConfig
-from hazmate_builder.auth import start_oauth_session
-from hazmate_builder.queries.base import PaginatedReponseJson, paginate
+import requests_cache
+
+CACHE_DIR = Path(".cache")
+# Install the cache before importing any modules that use the requests library
+# I'm not sure why this is necessary, but it is - without it, the cache is not used
+requests_cache.install_cache(str(CACHE_DIR / "requests"))
+
+from examples.queries.interacting_with_meli_api import main as interacting_with_meli_api_main
 
 
 def main():
-    config = AppConfig.from_dotenv(".env")
+    interacting_with_meli_api_main()
 
 
 if __name__ == "__main__":
