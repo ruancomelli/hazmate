@@ -1,0 +1,14 @@
+[project]
+name = "hazmate"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "flask>=3.1.1",
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.4",
+    "requests-oauthlib>=2.0.0",
+    "yarl>=1.20.1",
+]
