@@ -29,4 +29,8 @@ To build the dataset, I will send requests to two Meli API endpoints:
 
 In order to build type-safe queries, I created a `pydantic` model for each endpoint by first sending sample queries to the API, saving the responses to a file, and then asking Cursor to create the relevant Pydantic models. See the conversation in [`cursor-chats/cursor_create_pydantic_model_for_mercad.md`](cursor-chats/cursor_create_pydantic_model_for_mercad.md).
 
-<!-- explain why I used this -->
+See [`examples/search_query.py`](examples/search_query.py) and [`examples/search_query_paginated.py`](examples/search_query_paginated.py) for examples of how to use the type-safe search query.
+
+#### Building the dataset
+
+<!-- TODO -->

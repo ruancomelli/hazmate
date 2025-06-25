@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
 
@@ -96,3 +97,26 @@ def search_products(
     response.raise_for_status()
 
     return SearchResponse.model_validate(response.json())
+
+
+def search_products_paginated(
+    session: OAuth2Session,
+    query: str,
+    site_id: SiteId,
+    limit: int | None = None,
+) -> Iterator[SearchResponse]:
+    """Search for products in Meli API, paginated.
+
+    Args:
+        session: The OAuth2 session to use.
+        query: The query to search for.
+        site_id: The site to search on.
+        limit: The limit of products to return.
+    """
+    offset = 0
+    while True:
+        response = search_products(session, query, site_id, limit, offset)
+        yield response
+        offset += response.paging.limit
+        if offset >= response.paging.total:
+            break
