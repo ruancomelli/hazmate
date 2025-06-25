@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic import HttpUrl as Url
 from requests_oauthlib import OAuth2Session
 
-from hazmate_builder.queries.base import BASE_URL
+from hazmate.builder.queries.base import BASE_URL
 
 
 class ChannelSettings(BaseModel):

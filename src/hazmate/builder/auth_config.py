@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, SecretStr
 from pydantic import HttpUrl as Url
 
 
-class AppConfig(BaseModel):
+class AuthConfig(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         frozen=True,

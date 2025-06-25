@@ -1,6 +1,6 @@
 from flask import Flask, request
 
-from hazmate_redirect_server.config import PORT
+from redirect_server.config import PORT
 
 app = Flask(__name__)
 

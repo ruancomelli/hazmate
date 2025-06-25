@@ -3,7 +3,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 from requests_oauthlib import OAuth2Session
 
-from hazmate_builder.queries.base import BASE_URL
+from hazmate.builder.queries.base import BASE_URL
 
 
 class AttributeUnit(BaseModel):

@@ -2,17 +2,17 @@
 
 from pprint import pprint
 
-from hazmate_builder.app_config import AppConfig
-from hazmate_builder.auth import start_oauth_session
-from hazmate_builder.queries.base import SiteId
-from hazmate_builder.queries.search import search_products
+from hazmate.builder.auth import start_oauth_session
+from hazmate.builder.auth_config import AuthConfig
+from hazmate.builder.queries.base import SiteId
+from hazmate.builder.queries.search import search_items
 
 
 def main():
-    config = AppConfig.from_dotenv(".env")
+    config = AuthConfig.from_dotenv(".env")
 
     with start_oauth_session(config) as session:
-        response = search_products(
+        response = search_items(
             session,
             query="dinossauro",
             site_id=SiteId.BRAZIL,

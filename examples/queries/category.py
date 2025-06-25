@@ -2,13 +2,13 @@
 
 from pprint import pprint
 
-from hazmate_builder.app_config import AppConfig
-from hazmate_builder.auth import start_oauth_session
-from hazmate_builder.queries.category import get_category
+from hazmate.builder.auth_config import AuthConfig
+from hazmate.builder.auth import start_oauth_session
+from hazmate.builder.queries.category import get_category
 
 
 def main():
-    config = AppConfig.from_dotenv(".env")
+    config = AuthConfig.from_dotenv(".env")
 
     with start_oauth_session(config) as session:
         response = get_category(session, "MLB5672")

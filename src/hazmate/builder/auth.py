@@ -8,14 +8,14 @@ import dotenv
 from requests_oauthlib import OAuth2Session
 from yarl import URL
 
-from hazmate_builder.app_config import AppConfig
+from hazmate.builder.auth_config import AuthConfig
 
 DOTENV_OAUTH_TOKEN_KEY = "OAUTH_TOKEN"
 AUTHORIZATION_BASE_URL = URL("https://auth.mercadolivre.com.br/authorization")
 REFRESH_URL = URL("https://api.mercadolibre.com/oauth/token")
 
 
-def start_oauth_session(app_config: AppConfig) -> OAuth2Session:
+def start_oauth_session(app_config: AuthConfig) -> OAuth2Session:
     oauth_token_loader = partial(load_dotenv_oauth_token, app_config.dot_env_path)
     oauth_token_saver = partial(save_dotenv_oauth_token, app_config.dot_env_path)
 

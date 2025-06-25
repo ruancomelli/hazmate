@@ -1,15 +1,24 @@
 """Example of getting all subcategories and their attributes."""
 
-from hazmate_builder.app_config import AppConfig
-from hazmate_builder.auth import start_oauth_session
-from hazmate_builder.queries.base import SiteId
-from hazmate_builder.queries.categories import get_categories
-from hazmate_builder.queries.category import get_category
-from hazmate_builder.queries.category_attributes import get_category_attributes
+from pathlib import Path
+
+import requests_cache
+
+CACHE_DIR = Path(".cache")
+# Install the cache before importing any modules that use the requests library
+# I'm not sure why this is necessary, but it is - without it, the cache is not used
+requests_cache.install_cache(str(CACHE_DIR / "requests"))
+
+from hazmate.builder.auth_config import AuthConfig
+from hazmate.builder.auth import start_oauth_session
+from hazmate.builder.queries.base import SiteId
+from hazmate.builder.queries.categories import get_categories
+from hazmate.builder.queries.category import get_category
+from hazmate.builder.queries.category_attributes import get_category_attributes
 
 
 def main():
-    config = AppConfig.from_dotenv(".env")
+    config = AuthConfig.from_dotenv(".env")
 
     with start_oauth_session(config) as session:
         total_subcategories_count = 0

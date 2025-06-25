@@ -3,13 +3,13 @@
 import textwrap
 from pprint import pformat
 
-from hazmate_builder.app_config import AppConfig
-from hazmate_builder.auth import start_oauth_session
-from hazmate_builder.queries.base import SiteId
+from hazmate.builder.auth_config import AuthConfig
+from hazmate.builder.auth import start_oauth_session
+from hazmate.builder.queries.base import SiteId
 
 
 def main():
-    config = AppConfig.from_dotenv(".env")
+    config = AuthConfig.from_dotenv(".env")
 
     with start_oauth_session(config) as session:
         for site_id in [SiteId.BRAZIL]:

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from requests_oauthlib import OAuth2Session
 
-from hazmate_builder.queries.base import BASE_URL, SiteId
+from hazmate.builder.queries.base import BASE_URL, SiteId
 
 
 class CategorySimple(BaseModel):
