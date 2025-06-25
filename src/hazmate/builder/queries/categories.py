@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict
-from requests_oauthlib import OAuth2Session
+from pydantic import ConfigDict
 
-from hazmate.builder.queries.base import BASE_URL, SiteId
+from hazmate.builder.queries.base import BASE_URL, ApiResponseModel, SiteId
+from hazmate.utils.oauth import OAuth2Session
 
 
-class CategorySimple(BaseModel):
+class CategorySimple(ApiResponseModel):
     model_config = ConfigDict(frozen=True)
 
     id: str

@@ -1,23 +1,24 @@
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
-from requests_oauthlib import OAuth2Session
+from pydantic import ConfigDict
 
-from hazmate.builder.queries.base import BASE_URL
+from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
+from hazmate.utils.frozendict import FrozenDict
+from hazmate.utils.oauth import OAuth2Session
 
 
-class AttributeUnit(BaseModel):
+class AttributeUnit(ApiResponseModel):
     id: str
     name: str
 
 
-class AttributeValue(BaseModel):
+class AttributeValue(ApiResponseModel):
     id: str
     name: str
-    metadata: dict[str, Any] | None = None
+    metadata: FrozenDict[str, Any] | None = None
 
 
-class CategoryAttribute(BaseModel):
+class CategoryAttribute(ApiResponseModel):
     model_config = ConfigDict(frozen=True)
 
     attribute_group_id: str
@@ -31,8 +32,8 @@ class CategoryAttribute(BaseModel):
     tooltip: str | None = None
     value_max_length: int | None = None
     value_type: str
-    values: list[AttributeValue] | None = None
-    allowed_units: list[AttributeUnit] | None = None
+    values: tuple[AttributeValue, ...] | None = None
+    allowed_units: tuple[AttributeUnit, ...] | None = None
     default_unit: str | None = None
 
 

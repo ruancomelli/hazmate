@@ -2,77 +2,78 @@ from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
-from requests_oauthlib import OAuth2Session
 
-from hazmate.builder.queries.base import BASE_URL, SiteId
+from hazmate.builder.queries.base import BASE_URL, ApiResponseModel, SiteId
+from hazmate.utils.frozendict import FrozenDict
+from hazmate.utils.oauth import OAuth2Session
 
 SEARCH_URL = BASE_URL / "products" / "search"
 
 
-class SearchPaging(BaseModel):
+class SearchPaging(ApiResponseModel):
     limit: int
     offset: int
     total: int
 
 
-class SearchAttributeValue(BaseModel):
+class SearchAttributeValue(ApiResponseModel):
     id: str
     name: str
-    meta: dict[str, Any] | None = None
+    meta: FrozenDict[str, Any] | None = None
 
 
-class SearchAttribute(BaseModel):
+class SearchAttribute(ApiResponseModel):
     id: str
     name: str
     value_id: str | None = None
     value_name: str
-    values: list[SearchAttributeValue] | None = None
+    values: tuple[SearchAttributeValue, ...] | None = None
 
 
-class SearchPicture(BaseModel):
+class SearchPicture(ApiResponseModel):
     id: str
     url: Url
 
 
-class SearchSettings(BaseModel):
+class SearchSettings(ApiResponseModel):
     exclusive: bool
     listing_strategy: str
 
 
-class SearchResult(BaseModel):
+class SearchResult(ApiResponseModel):
     model_config = ConfigDict(frozen=True)
 
-    attributes: list[SearchAttribute]
+    attributes: tuple[SearchAttribute, ...]
     catalog_product_id: str
-    children_ids: list[str]
+    children_ids: tuple[str, ...]
     date_created: datetime
     description: str
     domain_id: str
     id: str
     keywords: str
-    main_features: list[Any]  # Can be empty or contain various structures
+    main_features: tuple[Any, ...]  # Can be empty or contain various structures
     name: str
-    pdp_types: list[str]
-    pictures: list[SearchPicture]
+    pdp_types: tuple[str, ...]
+    pictures: tuple[SearchPicture, ...]
     priority: str
     quality_type: str
     settings: SearchSettings
     site_id: str
     status: str
     type: str
-    variations: list[Any]  # Can contain various structures
+    variations: tuple[Any, ...]  # Can contain various structures
 
 
-class SearchResponse(BaseModel):
+class SearchResponse(ApiResponseModel):
     model_config = ConfigDict(frozen=True)
 
     keywords: str
     paging: SearchPaging
     query_type: str
-    results: list[SearchResult]
-    used_attributes: list[Any]
+    results: tuple[SearchResult, ...]
+    used_attributes: tuple[Any, ...]
 
 
 def search_products(

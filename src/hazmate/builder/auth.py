@@ -1,12 +1,3 @@
-from pathlib import Path
-
-import requests_cache
-
-CACHE_DIR = Path(".cache")
-# Install the cache before importing any modules that use the requests library
-# I'm not sure why this is necessary, but it is - without it, the cache is not used
-requests_cache.install_cache(str(CACHE_DIR / "requests"))
-
 import json
 import textwrap
 from functools import partial
@@ -14,10 +5,10 @@ from pathlib import Path
 from typing import Any
 
 import dotenv
-from requests_oauthlib import OAuth2Session
 from yarl import URL
 
 from hazmate.builder.auth_config import AuthConfig
+from hazmate.utils.oauth import OAuth2Session
 
 DOTENV_OAUTH_TOKEN_KEY = "OAUTH_TOKEN"
 AUTHORIZATION_BASE_URL = URL("https://auth.mercadolivre.com.br/authorization")

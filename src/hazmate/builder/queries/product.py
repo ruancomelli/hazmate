@@ -1,75 +1,76 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
-from requests_oauthlib import OAuth2Session
 
-from hazmate.builder.queries.base import BASE_URL
+from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
+from hazmate.utils.frozendict import FrozenDict
+from hazmate.utils.oauth import OAuth2Session
 
 PRODUCT_URL = BASE_URL / "products"
 
 
-class PickerProduct(BaseModel):
+class PickerProduct(ApiResponseModel):
     product_id: str
     picker_label: str
     picture_id: str
     thumbnail: str
-    tags: list[str]
+    tags: tuple[str, ...]
     permalink: str
 
 
-class PickerAttribute(BaseModel):
+class PickerAttribute(ApiResponseModel):
     attribute_id: str
     template: str
 
 
-class Picker(BaseModel):
+class Picker(ApiResponseModel):
     picker_id: str
     picker_name: str
-    products: list[PickerProduct]
-    tags: Optional[Any] = None
-    attributes: list[PickerAttribute]
+    products: tuple[PickerProduct, ...]
+    tags: tuple[str, ...] | None = None
+    attributes: tuple[PickerAttribute, ...]
 
 
-class Picture(BaseModel):
+class Picture(ApiResponseModel):
     id: str
     url: str
-    suggested_for_picker: list[str]
+    suggested_for_picker: tuple[str, ...]
     max_width: int
     max_height: int
 
 
-class MainFeature(BaseModel):
+class MainFeature(ApiResponseModel):
     text: str
     type: str
 
 
-class AttributeValue(BaseModel):
+class AttributeValue(ApiResponseModel):
     id: str
     name: str
-    meta: Optional[dict[str, Any]] = None
+    meta: FrozenDict[str, Any] | None = None
 
 
-class Attribute(BaseModel):
+class Attribute(ApiResponseModel):
     id: str
     name: str
-    value_id: Optional[str] = None
+    value_id: str | None = None
     value_name: str
-    values: list[AttributeValue]
-    meta: Optional[dict[str, Any]] = None
+    values: tuple[AttributeValue, ...]
+    meta: FrozenDict[str, Any] | None = None
 
 
-class ShortDescription(BaseModel):
+class ShortDescription(ApiResponseModel):
     type: str
     content: str
 
 
-class ProductSettings(BaseModel):
+class ProductSettings(ApiResponseModel):
     listing_strategy: str
 
 
-class Product(BaseModel):
+class Product(ApiResponseModel):
     model_config = ConfigDict(frozen=True)
 
     id: str
@@ -78,15 +79,15 @@ class Product(BaseModel):
     permalink: Url
     name: str
     family_name: str
-    buy_box_winner: Optional[Any] = None
-    buy_box_winner_price_range: Optional[Any] = None
-    pickers: list[Picker]
-    pictures: list[Picture]
-    main_features: list[MainFeature]
-    attributes: list[Attribute]
+    buy_box_winner: Any | None = None
+    buy_box_winner_price_range: Any | None = None
+    pickers: tuple[Picker, ...]
+    pictures: tuple[Picture, ...]
+    main_features: tuple[MainFeature, ...]
+    attributes: tuple[Attribute, ...]
     short_description: ShortDescription
     parent_id: str
-    children_ids: list[str]
+    children_ids: tuple[str, ...]
     settings: ProductSettings
     buy_box_activation_date: datetime
     date_created: datetime

@@ -40,7 +40,7 @@ class CollectorConfig(BaseModel):
     """Configuration for the collector command."""
 
     categories: Annotated[
-        tuple[CategoryConfig, ...],
+        CategoryConfig,
         Field(description="The categories to collect."),
     ]
 

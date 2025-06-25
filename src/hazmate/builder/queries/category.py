@@ -1,40 +1,41 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
-from requests_oauthlib import OAuth2Session
 
-from hazmate.builder.queries.base import BASE_URL
+from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
+from hazmate.utils.frozendict import FrozenDict
+from hazmate.utils.oauth import OAuth2Session
 
 
-class ChannelSettings(BaseModel):
+class ChannelSettings(ApiResponseModel):
     channel: str
-    settings: dict[str, Any]
+    settings: FrozenDict[str, Any]
 
 
-class ChildCategory(BaseModel):
+class ChildCategory(ApiResponseModel):
     id: str
     name: str
     total_items_in_this_category: int
 
 
-class PathFromRoot(BaseModel):
+class PathFromRoot(ApiResponseModel):
     id: str
     name: str
 
 
-class CategorySettings(BaseModel):
+class CategorySettings(ApiResponseModel):
     adult_content: bool
-    buyer_protection_programs: list[str]
+    buyer_protection_programs: tuple[str, ...]
     buying_allowed: bool
-    buying_modes: list[str]
+    buying_modes: tuple[str, ...]
     catalog_domain: str | None = None
     coverage_areas: str
-    currencies: list[str]
+    currencies: tuple[str, ...]
     fragile: bool
     immediate_payment: str
-    item_conditions: list[str]
+    item_conditions: tuple[str, ...]
     items_reviews_allowed: bool
     listing_allowed: bool
     max_description_length: int
@@ -49,13 +50,13 @@ class CategorySettings(BaseModel):
     minimum_price_currency: str | None = None
     mirror_category: str | None = None
     mirror_master_category: str | None = None
-    mirror_slave_categories: list[str]
+    mirror_slave_categories: tuple[str, ...]
     price: str
     reservation_allowed: str
-    restrictions: list[str]
+    restrictions: tuple[str, ...]
     rounded_address: bool
     seller_contact: str
-    shipping_options: list[str]
+    shipping_options: tuple[str, ...]
     shipping_profile: str
     show_contact_information: bool
     simple_shipping: str
@@ -63,23 +64,23 @@ class CategorySettings(BaseModel):
     stock: str
     sub_vertical: str | None = None
     subscribable: bool
-    tags: list[str]
+    tags: tuple[str, ...]
     vertical: str | None = None
     vip_subdomain: str
 
 
-class CategoryDetail(BaseModel):
+class CategoryDetail(ApiResponseModel):
     model_config = ConfigDict(frozen=True)
 
     attributable: bool
     attribute_types: str
-    channels_settings: list[ChannelSettings]
-    children_categories: list[ChildCategory]
+    channels_settings: tuple[ChannelSettings, ...]
+    children_categories: tuple[ChildCategory, ...]
     date_created: datetime
     id: str
     meta_categ_id: str | None = None
     name: str
-    path_from_root: list[PathFromRoot]
+    path_from_root: tuple[PathFromRoot, ...]
     permalink: Url
     picture: Url
     settings: CategorySettings

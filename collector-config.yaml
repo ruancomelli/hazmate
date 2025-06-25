@@ -63,6 +63,21 @@ categories:
     - id: MLB12404
       name: Festas e Lembrancinhas
 
+    - id: MLB1384
+      name: Bebês
+
+    - id: MLB1051
+      name: Celulares e Telefones
+
+    - id: MLB5726
+      name: Eletrodomésticos
+
+    - id: MLB1276
+      name: Esportes e Fitness
+
+    - id: MLB1953
+      name: Mais Categorias
+
   exclude:
     - id: MLB1743
       name: Carros, Motos e Outros

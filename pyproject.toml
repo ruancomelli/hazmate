@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "flask>=3.1.1",
+    "frozendict>=2.4.6",
     "pydantic>=2.11.7",
     "python-dotenv>=1.1.0",
     "pyyaml>=6.0.2",
