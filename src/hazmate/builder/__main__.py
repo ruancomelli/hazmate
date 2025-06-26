@@ -82,7 +82,7 @@ async def main(
             "-o",
             help="Name of the output file",
         ),
-    ] = "input_dataset.csv",
+    ] = "input_dataset.jsonl",
     goal: Annotated[
         Goal,
         typer.Option(
@@ -108,68 +108,34 @@ async def main(
 
         # Save dataset to file
         output_path = OUTPUT_DIR / output_name
-        if output_path.suffix.lower() not in (".jsonl", ".csv"):
-            raise ValueError(f"Invalid output file extension: {output_path.suffix}")
+        if output_path.suffix.lower() != ".jsonl":
+            raise ValueError(
+                f"Invalid output file extension: {output_path.suffix} - only .jsonl is supported"
+            )
 
         with output_path.open("w") as f:
-            # Determine file format based on suffix
-            if output_path.suffix.lower() == ".jsonl":
-                # JSONL format - one JSON object per line
-                # Start progress tracking for main collection
-                with Progress(
-                    SpinnerColumn(),
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(),
-                    TimeElapsedColumn(),
-                    TimeRemainingColumn(),
-                ) as progress:
-                    main_progress_task = progress.add_task(
-                        "[green]Collecting items... (0 / {:,})[/green]".format(
-                            target_size
-                        ),
-                        total=None,
-                    )
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TimeElapsedColumn(),
+                TimeRemainingColumn(),
+            ) as progress:
+                main_progress_task = progress.add_task(
+                    "[green]Collecting items... (0 / {:,})[/green]".format(target_size),
+                    total=None,
+                )
 
-                    async for item in _generate_input_dataset_items(
-                        session,
-                        collector_config,
-                        target_size=target_size,
-                        progress_tracker=progress,
-                        main_progress_task=main_progress_task,
-                        goal=goal,
-                    ):
-                        f.write(json.dumps(item.model_dump()) + "\n")
-                        collected_items.append(item)
-            else:
-                # CSV format (default)
-                writer = csv.DictWriter(f, fieldnames=InputDatasetItem.model_fields)
-                writer.writeheader()
-
-                # Start progress tracking for main collection
-                with Progress(
-                    SpinnerColumn(),
-                    TextColumn("[progress.description]{task.description}"),
-                    BarColumn(),
-                    TimeElapsedColumn(),
-                    TimeRemainingColumn(),
-                ) as progress:
-                    main_progress_task = progress.add_task(
-                        "[green]Collecting items... (0 / {:,})[/green]".format(
-                            target_size
-                        ),
-                        total=None,
-                    )
-
-                    async for item in _generate_input_dataset_items(
-                        session,
-                        collector_config,
-                        target_size=target_size,
-                        progress_tracker=progress,
-                        main_progress_task=main_progress_task,
-                        goal=goal,
-                    ):
-                        writer.writerow(item.model_dump())
-                        collected_items.append(item)
+                async for item in _generate_input_dataset_items(
+                    session,
+                    collector_config,
+                    target_size=target_size,
+                    progress_tracker=progress,
+                    main_progress_task=main_progress_task,
+                    goal=goal,
+                ):
+                    f.write(json.dumps(item.model_dump()) + "\n")
+                    collected_items.append(item)
 
         # Calculate and display statistics
         _calculate_and_display_statistics(collected_items, output_name)
