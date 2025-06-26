@@ -11,10 +11,10 @@ requests_cache.install_cache(str(CACHE_DIR / "requests"))
 
 from rich.progress import Progress
 
-from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.auth import start_oauth_session
+from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.categories import get_categories
+from hazmate.builder.queries.categories import iter_categories
 from hazmate.builder.queries.category import get_category
 from hazmate.builder.queries.category_attributes import get_category_attributes
 
@@ -26,7 +26,7 @@ def main():
 
     with start_oauth_session(config) as session:
         # Get all categories first to know the total count
-        categories = list(get_categories(session, SiteId.BRAZIL))
+        categories = list(iter_categories(session, SiteId.BRAZIL))
 
         with Progress() as progress:
             for category_ref in progress.track(

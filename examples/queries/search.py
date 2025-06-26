@@ -14,10 +14,11 @@ def main():
     with start_oauth_session(config) as session:
         response = search_products(
             session,
-            query="dinossauro",
             site_id=SiteId.BRAZIL,
+            category_id="MLB1168",
+            query="dinossauro",
         )
-        pprint(response)
+        pprint(response.model_dump())
 
 
 if __name__ == "__main__":

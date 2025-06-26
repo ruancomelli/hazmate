@@ -5,7 +5,7 @@ from hazmate.redirect_server.config import PORT
 app = Flask(__name__)
 
 
-@app.route("/")
+@app.route("/callback")
 def callback():
     code = request.args.get("code")
     return f"Authorization code: {code}", 200

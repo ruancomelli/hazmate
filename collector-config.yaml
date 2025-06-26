@@ -1,3 +1,7 @@
+# Request 100_000, as required by the challenge, but add 100 for
+# manual labeling
+# target_size: 100_000 + 100
+target_size: 100
 categories:
   include:
     - id: MLB5672
@@ -5,78 +9,228 @@ categories:
       exclude_subcategories:
         - id: MLB1773
           name: Serviços Programados
+      queries:
+        - óleo automotivo
+        - fluido de freio
+        - aditivo radiador
+        - limpa ar condicionado
+        - graxa spray
 
     - id: MLB271599
       name: Agro
+      queries:
+        - fertilizante
+        - inseticida
+        - herbicida
+        - pesticida
+        - raticida
 
     - id: MLB264586
       name: Saúde
+      queries:
+        - álcool 70
+        - peróxido de hidrogênio
+        - desinfetante hospitalar
+        - antisséptico
+        - anestésico tópico
 
     - id: MLB1246
       name: Beleza e Cuidado Pessoal
+      queries:
+        - removedor de esmalte
+        - spray de cabelo
+        - alisante químico
+        - tintura para cabelo
+        - acetona
 
     - id: MLB1574
       name: Casa, Móveis e Decoração
+      queries:
+        - desinfetante
+        - água sanitária
+        - multiuso limpeza
+        - removedor de mofo
+        - limpa vidro
 
     - id: MLB1500
       name: Construção
+      queries:
+        - selante
+        - cola pvc
+        - cimento cola
+        - impermeabilizante
+        - tinta spray
 
     - id: MLB263532
       name: Ferramentas
+      queries:
+        - cola industrial
+        - resina epóxi
+        - lubrificante spray
+        - removedor químico
+        - desengripante
 
     - id: MLB1499
       name: Indústria e Comércio
+      queries:
+        - fluido industrial
+        - solvente
+        - óleo mineral
+        - tinta industrial
+        - produto químico
 
     - id: MLB1403
       name: Alimentos e Bebidas
+      queries:
+        - bebida alcoólica
+        - vinagre
+        - energético
+        - álcool de cereais
+        - conserva
 
     - id: MLB1000
       name: Eletrônicos, Áudio e Vídeo
+      queries:
+        - bateria recarregável
+        - carregador de lítio
+        - fonte 12v
+        - controle remoto
+        - pilha alcalina
 
     - id: MLB1648
       name: Informática
+      queries:
+        - notebook
+        - power bank
+        - bateria notebook
+        - carregador usb-c
+        - no-break
 
     - id: MLB1039
       name: Câmeras e Acessórios
+      queries:
+        - flash externo
+        - bateria de câmera
+        - limpador de lente
+        - desumidificador
+        - spray para lente
 
     - id: MLB1144
       name: Games
+      queries:
+        - controle ps4
+        - console xbox
+        - bateria joystick
+        - carregador controle
+        - game boy
 
     - id: MLB3937
       name: Joias e Relógios
+      queries:
+        - bateria de relógio
+        - relógio digital
+        - relógio de pulso
+        - carregador smartwatch
+        - estojo relógio
 
     - id: MLB1132
       name: Brinquedos e Hobbies
+      queries:
+        - kit de química
+        - slime
+        - brinquedo com bateria
+        - drone infantil
+        - canetinha spray
 
     - id: MLB1182
       name: Instrumentos Musicais
+      queries:
+        - pedal de guitarra
+        - bateria eletrônica
+        - afinador digital
+        - amplificador portátil
+        - fonte pedalboard
 
     - id: MLB1071
       name: Animais
+      queries:
+        - antipulgas
+        - vermífugo
+        - shampoo medicamentoso
+        - spray repelente pet
+        - desinfetante pet
 
     - id: MLB1367
       name: Antiguidades e Coleções
+      queries:
+        - lamparina
+        - rádio antigo
+        - telefone antigo
+        - kit químico antigo
+        - relógio de corda
 
     - id: MLB1368
       name: Arte, Papelaria e Armarinho
+      queries:
+        - tinta acrílica
+        - solvente para pintura
+        - verniz spray
+        - fixador de carvão
+        - tinta óleo
 
     - id: MLB12404
       name: Festas e Lembrancinhas
+      queries:
+        - spray de espuma
+        - vela de aniversário
+        - serpentina
+        - confete metálico
+        - tinta neon
 
     - id: MLB1384
       name: Bebês
+      queries:
+        - lenço umedecido
+        - pomada para assadura
+        - termômetro digital
+        - shampoo bebê
+        - solução fisiológica
 
     - id: MLB1051
       name: Celulares e Telefones
+      queries:
+        - celular
+        - carregador portátil
+        - bateria celular
+        - power bank
+        - carregador turbo
 
     - id: MLB5726
       name: Eletrodomésticos
+      queries:
+        - aspirador de pó
+        - fritadeira elétrica
+        - ferro de passar
+        - vaporizador
+        - lava-louças
 
     - id: MLB1276
       name: Esportes e Fitness
+      queries:
+        - suplemento pré-treino
+        - garrafa térmica
+        - gás co2
+        - mochila de hidratação
+        - canivete
 
     - id: MLB1953
       name: Mais Categorias
+      queries:
+        - produto químico
+        - limpeza industrial
+        - inflamável
+        - tóxico
+        - perigoso
 
   exclude:
     - id: MLB1743
@@ -99,3 +253,45 @@ categories:
 
     - id: MLB1168
       name: Música, Filmes e Seriados
+extra_queries:
+  - bateria de lítio
+  - carregador portátil
+  - pilha recarregável
+  - power bank
+  - bateria explosiva
+  - produto inflamável
+  - produto corrosivo
+  - spray aerossol
+  - desentupidor químico
+  - removedor potente
+  - ácido muriático
+  - soda cáustica
+  - reagente químico
+  - produto tóxico
+  - frasco químico
+  - inflamável
+  - tóxico
+  - nocivo à saúde
+  - perigo de explosão
+  - manuseio especial
+  - contém solvente
+  - contém álcool
+  - produto com validade
+  - armazenar com cuidado
+  - embalagem pressurizada
+  - restrição aérea
+  - transporte perigoso
+  - envio restrito
+  - não pode ser enviado
+  - não enviado pelos correios
+  - líquido inflamável
+  - pó químico
+  - substância perigosa
+  - produto sujeito a regulação
+  - item regulamentado
+  # Optional: safe decoys for balance
+  - pelúcia infantil
+  - livro didático
+  - copo de plástico
+  - caneca
+  - caderno espiral

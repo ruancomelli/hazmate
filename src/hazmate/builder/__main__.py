@@ -3,6 +3,8 @@
 This script is used to build the hazmate dataset.
 """
 
+import csv
+from collections.abc import Iterator
 from pathlib import Path
 from pprint import pformat
 
@@ -11,14 +13,19 @@ from rich.progress import Progress
 from hazmate.builder.auth import start_oauth_session
 from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.collector_config import CollectorConfig
+from hazmate.builder.input_dataset import InputDatasetItem
 from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.categories import get_categories
+from hazmate.builder.queries.categories import iter_categories
 from hazmate.builder.queries.category import CategoryDetail, ChildCategory, get_category
 from hazmate.builder.queries.category_attributes import (
     CategoryAttribute,
     get_category_attributes,
 )
+from hazmate.builder.queries.product import get_product
+from hazmate.builder.queries.search import SearchResult, search_products_paginated
 from hazmate.utils.oauth import OAuth2Session
+
+OUTPUT_FILE = Path("data", "input_dataset.csv")
 
 
 def main():
@@ -33,6 +40,16 @@ def main():
         _validate_all_categories_in_config_exist(collector_config, api_categories_data)
         _validate_all_categories_are_in_config(collector_config, api_categories_data)
 
+        # Save dataset to file
+        with OUTPUT_FILE.open("w") as f:
+            writer = csv.DictWriter(f, fieldnames=InputDatasetItem.model_fields)
+            writer.writeheader()
+            for result in _generate_input_dataset_items(
+                session,
+                collector_config,
+            ):
+                writer.writerow(result.model_dump())
+
 
 def _collect_categories_with_subcategories_and_attributes(
     session: OAuth2Session,
@@ -42,7 +59,7 @@ def _collect_categories_with_subcategories_and_attributes(
         tuple[CategoryDetail, list[tuple[ChildCategory, list[CategoryAttribute]]]]
     ] = []
 
-    categories = list(get_categories(session, SiteId.BRAZIL))
+    categories = list(iter_categories(session, SiteId.BRAZIL))
 
     with Progress() as progress:
         main_task = progress.add_task("Collecting categories...", total=len(categories))
@@ -140,6 +157,103 @@ def _validate_all_categories_are_in_config(
             raise ValueError(
                 f"The following categories were not found in the config - please either include or exclude them:\n{pformat(missing_categories)}"
             )
+
+
+def _generate_input_dataset_items(
+    session: OAuth2Session,
+    collector_config: CollectorConfig,
+) -> Iterator[InputDatasetItem]:
+    """Generate an input dataset of products from configured categories and queries."""
+    for search_result in _iter_all_search_results(session, collector_config):
+        yield InputDatasetItem.from_search_result_and_product(
+            search_result,
+            get_product(session, search_result.id),
+        )
+
+
+def _iter_all_search_results(
+    session: OAuth2Session,
+    collector_config: CollectorConfig,
+) -> Iterator[SearchResult]:
+    """Build a dataset of products from configured categories and queries."""
+
+    # Collect all queries from categories and extra queries
+    all_queries: list[tuple[str, str]] = []  # (query, source_info)
+
+    # Add queries from included categories
+    for category in collector_config.categories.include:
+        for query in category.queries:
+            all_queries.append((query, f"Category: {category.name}"))
+
+    # Add extra queries
+    for query in collector_config.extra_queries:
+        all_queries.append((query, "Extra query"))
+
+    print(f"Total queries to process: {len(all_queries)}")
+
+    # Calculate how many products to collect per query (roughly equal distribution)
+    products_per_query = max(1, collector_config.target_size // len(all_queries))
+    remaining_products = collector_config.target_size
+
+    collected_count = 0
+
+    with Progress() as progress:
+        main_task = progress.add_task(
+            "Building dataset...",
+            total=collector_config.target_size,
+        )
+
+        for i, (query, source_info) in enumerate(all_queries):
+            if collected_count >= collector_config.target_size:
+                break
+
+            # Calculate how many items to collect from this query
+            # For the last query, collect all remaining products
+            if i == len(all_queries) - 1:
+                target_from_query = remaining_products
+            else:
+                target_from_query = min(products_per_query, remaining_products)
+
+            if target_from_query <= 0:
+                continue
+
+            progress.console.print(
+                f"Collecting {target_from_query:,} products for query '{query}' ({source_info})"
+            )
+
+            # Collect products from this query using pagination
+            query_collected = 0
+            try:
+                for response in search_products_paginated(
+                    session,
+                    SiteId.BRAZIL,
+                    query=query,
+                    limit=50,  # Collect in batches of 50
+                ):
+                    for result in response.results:
+                        if query_collected >= target_from_query:
+                            break
+
+                        yield result
+
+                        query_collected += 1
+                        collected_count += 1
+                        remaining_products -= 1
+                        progress.update(main_task, advance=1)
+
+                    if query_collected >= target_from_query:
+                        break
+
+            except Exception as e:
+                progress.console.print(f"Error collecting from query '{query}': {e}")
+                # Continue with next query instead of raising
+                continue
+
+            progress.console.print(
+                f"Collected {query_collected:,} products from query '{query}'"
+            )
+
+    print(f"Dataset built with {collected_count:,} products")
 
 
 if __name__ == "__main__":
