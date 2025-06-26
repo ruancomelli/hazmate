@@ -15,28 +15,24 @@ AUTHORIZATION_BASE_URL = URL("https://auth.mercadolivre.com.br/authorization")
 REFRESH_URL = URL("https://api.mercadolibre.com/oauth/token")
 
 
-def start_oauth_session(app_config: AuthConfig) -> OAuth2Session:
-    oauth_token_loader = partial(load_dotenv_oauth_token, app_config.dot_env_path)
-    oauth_token_saver = partial(save_dotenv_oauth_token, app_config.dot_env_path)
+def start_oauth_session(config: AuthConfig) -> OAuth2Session:
+    oauth_token_loader = partial(load_dotenv_oauth_token, config.dot_env_path)
+    oauth_token_saver = partial(save_dotenv_oauth_token, config.dot_env_path)
 
-    scopes = ["read", "offline_access"]
-    session = OAuth2Session(
-        app_config.client_id,
-        redirect_uri=app_config.redirect_url,
-        scope=scopes,
-        token=oauth_token_loader(),
-        token_updater=oauth_token_saver,
-        auto_refresh_url=REFRESH_URL.human_repr(),
-        auto_refresh_kwargs={
-            "client_id": app_config.client_id,
-            "client_secret": app_config.client_secret.get_secret_value(),
-        },
+    session = OAuth2Session.from_config(
+        client_id=config.client_id,
+        client_secret=config.client_secret,
+        redirect_uri=config.redirect_url,
+        scopes=["read", "offline_access"],
+        oauth_token_loader=oauth_token_loader,
+        oauth_token_saver=oauth_token_saver,
+        auto_refresh_url=REFRESH_URL,
     )
 
-    if not session.token:
+    if not session.session.token:
         print("No OAuth token found, fetching new one")
 
-        auth_url, _state = session.authorization_url(
+        auth_url, _state = session.session.authorization_url(
             AUTHORIZATION_BASE_URL.human_repr(),
         )
 
@@ -53,10 +49,10 @@ def start_oauth_session(app_config: AuthConfig) -> OAuth2Session:
             ).strip()
         )
 
-        token = session.fetch_token(
+        token = session.session.fetch_token(
             REFRESH_URL.human_repr(),
             code=authorization_code,
-            client_secret=app_config.client_secret.get_secret_value(),
+            client_secret=config.client_secret.get_secret_value(),
             include_client_id=True,
         )
         oauth_token_saver(token)

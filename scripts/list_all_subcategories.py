@@ -12,7 +12,7 @@ requests_cache.install_cache(str(CACHE_DIR / "requests"))
 from hazmate.builder.auth import start_oauth_session
 from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.categories import iter_categories
+from hazmate.builder.queries.categories import get_categories
 from hazmate.builder.queries.category import get_category
 from hazmate.builder.queries.category_attributes import get_category_attributes
 
@@ -24,7 +24,7 @@ def main():
         total_subcategories_count = 0
         total_items_count = 0
 
-        categories = list(iter_categories(session, SiteId.BRAZIL))
+        categories = list(get_categories(session, SiteId.BRAZIL))
 
         for category_ref in categories:
             category = get_category(session, category_ref.id)

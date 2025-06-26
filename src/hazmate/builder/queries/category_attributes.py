@@ -1,5 +1,6 @@
 from typing import Any
 
+from asyncer import asyncify
 from pydantic import ConfigDict
 
 from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
@@ -37,7 +38,7 @@ class CategoryAttribute(ApiResponseModel):
     default_unit: str | None = None
 
 
-def get_category_attributes(
+async def get_category_attributes(
     session: OAuth2Session, category_id: str
 ) -> list[CategoryAttribute]:
     """Get attribute definitions for a specific category from Meli API.
@@ -223,7 +224,7 @@ def get_category_attributes(
 
     url = BASE_URL / "categories" / category_id / "attributes"
 
-    response = session.get(url.human_repr())
+    response = await session.get(url)
     response.raise_for_status()
 
     attributes_data = response.json()

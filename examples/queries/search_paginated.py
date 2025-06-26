@@ -1,21 +1,26 @@
+from asyncer import runnify
+
 from hazmate.builder.auth import start_oauth_session
 from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.queries.base import SiteId
 from hazmate.builder.queries.search import search_products_paginated
+from hazmate.utils.async_itertools import aenumerate
 
 
-def main():
+@runnify
+async def main():
     config = AuthConfig.from_dotenv(".env")
 
-    with start_oauth_session(config) as session:
-        for index, response in enumerate(
+    async with start_oauth_session(config) as session:
+        async for index, response in aenumerate(
             search_products_paginated(
                 session,
-                "dinossauro",
-                SiteId.BRAZIL,
+                site_id=SiteId.BRAZIL,
+                query="dinossauro",
             ),
         ):
-            print(index, "->", response.results[0].name)
+            for subindex, result in enumerate(response.results):
+                print(f"{index}.{subindex} -> {result.name}")
 
 
 if __name__ == "__main__":

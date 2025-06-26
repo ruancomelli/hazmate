@@ -1,5 +1,4 @@
-from collections.abc import Iterator
-
+from asyncer import asyncify
 from pydantic import ConfigDict
 
 from hazmate.builder.queries.base import BASE_URL, ApiResponseModel, SiteId
@@ -13,9 +12,9 @@ class CategorySimple(ApiResponseModel):
     name: str
 
 
-def iter_categories(
+async def get_categories(
     session: OAuth2Session, site_id: SiteId
-) -> Iterator[CategorySimple]:
+) -> list[CategorySimple]:
     """Get all categories for a specific site from Meli API.
 
     Args:
@@ -64,11 +63,11 @@ def iter_categories(
     #  {'id': 'MLB1953', 'name': 'Mais Categorias'}]
     url = BASE_URL / "sites" / site_id.value / "categories"
 
-    response = session.get(url.human_repr())
+    response = await session.get(url)
     response.raise_for_status()
 
     categories_data = response.json()
-    return (
+    return [
         CategorySimple.model_validate(category_data)
         for category_data in categories_data
-    )
+    ]

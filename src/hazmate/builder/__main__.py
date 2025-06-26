@@ -3,8 +3,9 @@
 This script is used to build the hazmate dataset.
 """
 
+import asyncio
 import csv
-from collections.abc import Iterator
+from collections.abc import AsyncIterator
 from pathlib import Path
 from pprint import pformat
 from typing import Annotated
@@ -12,14 +13,14 @@ from typing import Annotated
 import typer
 from asyncer import runnify
 from requests.exceptions import HTTPError
-from rich.progress import Progress
+from rich.progress import Progress, TaskID
 
 from hazmate.builder.auth import start_oauth_session
 from hazmate.builder.auth_config import AuthConfig
 from hazmate.builder.collector_config import CollectorConfig
 from hazmate.builder.input_dataset import InputDatasetItem
 from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.categories import iter_categories
+from hazmate.builder.queries.categories import get_categories
 from hazmate.builder.queries.category import CategoryDetail, ChildCategory, get_category
 from hazmate.builder.queries.category_attributes import (
     CategoryAttribute,
@@ -27,6 +28,7 @@ from hazmate.builder.queries.category_attributes import (
 )
 from hazmate.builder.queries.product import get_product
 from hazmate.builder.queries.search import search_products_paginated
+from hazmate.utils.async_itertools import ainterleave_queued, aislice
 from hazmate.utils.oauth import OAuth2Session
 
 QUERY_SIZE_LIMIT = 100
@@ -67,9 +69,9 @@ async def main(
     auth_config = AuthConfig.from_dotenv(".env")
     collector_config = CollectorConfig.from_yaml(config_path)
 
-    with start_oauth_session(auth_config) as session:
-        api_categories_data = _collect_categories_with_subcategories_and_attributes(
-            session
+    async with start_oauth_session(auth_config) as session:
+        api_categories_data = (
+            await _collect_categories_with_subcategories_and_attributes(session)
         )
 
         _validate_all_categories_in_config_exist(collector_config, api_categories_data)
@@ -79,15 +81,24 @@ async def main(
         with (OUTPUT_DIR / output_name).open("w") as f:
             writer = csv.DictWriter(f, fieldnames=InputDatasetItem.model_fields)
             writer.writeheader()
-            for result in _generate_input_dataset_items(
-                session,
-                collector_config,
-                target_size=target_size,
-            ):
-                writer.writerow(result.model_dump())
+
+            # Start progress tracking for main collection
+            with Progress() as progress:
+                main_task = progress.add_task(
+                    "[green]Collecting items...", total=target_size
+                )
+
+                async for item in _generate_input_dataset_items(
+                    session,
+                    collector_config,
+                    target_size=target_size,
+                    progress_tracker=progress,
+                    main_progress_task=main_task,
+                ):
+                    writer.writerow(item.model_dump())
 
 
-def _collect_categories_with_subcategories_and_attributes(
+async def _collect_categories_with_subcategories_and_attributes(
     session: OAuth2Session,
 ) -> list[tuple[CategoryDetail, list[tuple[ChildCategory, list[CategoryAttribute]]]]]:
     """Collect all categories with their subcategories and attributes."""
@@ -95,13 +106,13 @@ def _collect_categories_with_subcategories_and_attributes(
         tuple[CategoryDetail, list[tuple[ChildCategory, list[CategoryAttribute]]]]
     ] = []
 
-    categories = list(iter_categories(session, SiteId.BRAZIL))
+    categories = await get_categories(session, SiteId.BRAZIL)
 
     with Progress() as progress:
         main_task = progress.add_task("Collecting categories...", total=len(categories))
 
         for category_ref in categories:
-            category = get_category(session, category_ref.id)
+            category = await get_category(session, category_ref.id)
 
             subcategories: list[tuple[ChildCategory, list[CategoryAttribute]]] = []
 
@@ -112,7 +123,9 @@ def _collect_categories_with_subcategories_and_attributes(
                 )
 
                 for child_category in category.children_categories:
-                    attributes = get_category_attributes(session, child_category.id)
+                    attributes = await get_category_attributes(
+                        session, child_category.id
+                    )
                     subcategories.append((child_category, attributes))
                     progress.update(child_task, advance=1)
 
@@ -195,124 +208,134 @@ def _validate_all_categories_are_in_config(
             )
 
 
-def _generate_input_dataset_items(
+async def _generate_input_dataset_items(
     session: OAuth2Session,
     collector_config: CollectorConfig,
     target_size: int,
-) -> Iterator[InputDatasetItem]:
-    """Build a dataset of products from configured categories and queries."""
+    progress_tracker: Progress | None = None,
+    main_progress_task: TaskID | None = None,
+) -> AsyncIterator[InputDatasetItem]:
+    """Build a dataset of products from configured categories and queries - elegant async version."""
 
-    # Collect all queries from categories and extra queries
-    all_queries: list[tuple[str, str]] = []  # (query, source_info)
+    # Collect all queries
+    all_queries = [
+        query
+        for category in collector_config.categories.include
+        for query in category.queries
+    ] + list(collector_config.extra_queries)
 
-    # Add queries from included categories
-    for category in collector_config.categories.include:
-        for query in category.queries:
-            all_queries.append((query, f"Category: {category.name}"))
+    print(f"Starting parallel collection from {len(all_queries)} queries")
+    print(f"Target size: {target_size:,}")
 
-    # Add extra queries
-    for query in collector_config.extra_queries:
-        all_queries.append((query, "Extra query"))
-
-    print(f"Total queries to process: {len(all_queries)}")
-
-    # Calculate how many products to collect per query (roughly equal distribution)
-    products_per_query = max(1, target_size // len(all_queries))
-    remaining_products = target_size
-
-    collected_count = 0
-    total_failures_count = 0
-
-    with Progress() as progress:
-        main_task = progress.add_task(
-            "Building dataset...",
-            total=target_size,
-        )
-
-        for i, (query, source_info) in enumerate(all_queries):
-            if collected_count >= target_size:
-                break
-
-            # Calculate how many items to collect from this query
-            # For the last query, collect all remaining products
-            if i == len(all_queries) - 1:
-                target_from_query = remaining_products
-            else:
-                target_from_query = min(products_per_query, remaining_products)
-
-            if target_from_query <= 0:
-                continue
-
-            progress.console.print(
-                f"Collecting {target_from_query:,} products for query '{query}' ({source_info})"
+    # Initialize query progress tasks if progress is available
+    query_progress_tasks: dict[str, TaskID] = {}
+    if progress_tracker:
+        for query in all_queries:
+            task_id = progress_tracker.add_task(
+                f"[cyan]Query: {query[:50]}{'...' if len(query) > 50 else ''}[/cyan]",
+                total=None,  # Unknown total for each query
+                visible=False,  # Start hidden to avoid clutter
             )
+            query_progress_tasks[query] = task_id
 
-            # Collect products from this query using pagination
-            query_collected = 0
-            consecutive_failures = 0
+    # Create async iterators for each query
+    query_iterators = [
+        _items_from_query(
+            session,
+            query=query,
+            progress_tracker=progress_tracker,
+            query_progress_task=query_progress_tasks.get(query),
+        )
+        for query in all_queries
+    ]
+
+    # Interleave results and take exactly target_size items
+    interleaved = ainterleave_queued(*query_iterators)
+    limited = aislice(interleaved, 0, target_size)
+
+    count = 0
+    async for item in limited:
+        yield item
+        count += 1
+
+        # Update main progress
+        if progress_tracker and main_progress_task:
+            progress_tracker.update(main_progress_task, advance=1)
+
+        if count % 100 == 0:
+            print(f"Collected {count:,} items so far...")
+
+    print(f"Collection complete: {count:,} items")
+
+
+async def _items_from_query(
+    session: OAuth2Session,
+    query: str,
+    progress_tracker: Progress | None = None,
+    query_progress_task: TaskID | None = None,
+) -> AsyncIterator[InputDatasetItem]:
+    """Generate items from a single query - simple async iterator."""
+
+    print(f"Starting query: '{query}'")
+
+    consecutive_failures = 0
+    items_collected = 0
+
+    # Make the query task visible once we start processing
+    if progress_tracker and query_progress_task:
+        progress_tracker.update(query_progress_task, visible=True)
+
+    # Process each result
+    async for search_response in search_products_paginated(
+        session,
+        SiteId.BRAZIL,
+        query=query,
+        limit=QUERY_SIZE_LIMIT,
+    ):
+        async with asyncio.TaskGroup() as tg:
+            get_product_tasks = [
+                tg.create_task(get_product(session, search_result.id))
+                for search_result in search_response.results
+            ]
+
+        for search_result, product_task in zip(
+            search_response.results,
+            get_product_tasks,
+            strict=True,
+        ):
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                raise ValueError(
+                    f"Query '{query}': stopping due to {consecutive_failures} consecutive failures"
+                )
 
             try:
-                for response in search_products_paginated(
-                    session,
-                    SiteId.BRAZIL,
-                    query=query,
-                    limit=QUERY_SIZE_LIMIT,
-                ):
-                    for result in response.results:
-                        if query_collected >= target_from_query:
-                            break
+                product = product_task.result()
+                item = InputDatasetItem.from_search_result_and_product(
+                    search_result,
+                    product,
+                )
+                yield item
+                items_collected += 1
+                consecutive_failures = 0
 
-                        # Check if we've had too many consecutive failures
-                        if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                            progress.console.print(
-                                f"Skipping query '{query}' due to {consecutive_failures} consecutive product fetch failures"
-                            )
-                            break
+                # Update query-specific progress
+                if progress_tracker and query_progress_task:
+                    progress_tracker.update(
+                        query_progress_task,
+                        advance=1,
+                        description=f"[cyan]Query: {query[:50]}{'...' if len(query) > 50 else ''} ({items_collected} items)[/cyan]",
+                    )
 
-                        try:
-                            product = get_product(session, result.id)
-
-                            yield InputDatasetItem.from_search_result_and_product(
-                                result,
-                                product,
-                            )
-
-                            query_collected += 1
-                            collected_count += 1
-                            remaining_products -= 1
-                            consecutive_failures = 0  # Reset on success
-                            progress.update(main_task, advance=1)
-
-                        except HTTPError as e:
-                            if e.response.status_code == 404:
-                                # Product not found, skip this item
-                                consecutive_failures += 1
-                                total_failures_count += 1
-                                progress.console.print(
-                                    f"Product {result.id} not found (404), skipping..."
-                                )
-                                continue
-                            else:
-                                # Re-raise other HTTP errors
-                                raise
-
-                    if (
-                        query_collected >= target_from_query
-                        or consecutive_failures >= MAX_CONSECUTIVE_FAILURES
-                    ):
-                        break
-
-            except Exception as e:
-                progress.console.print(f"Error collecting from query '{query}': {e}")
-                # Continue with next query instead of raising
+            except HTTPError as e:
+                print(f"HTTP error in query '{query}': {e}")
+                consecutive_failures += 1
                 continue
 
-            progress.console.print(
-                f"Collected {query_collected:,} products from query '{query}' ({source_info})"
-            )
+    # Remove completed query task to keep progress display clean
+    if progress_tracker and query_progress_task:
+        progress_tracker.remove_task(query_progress_task)
 
-    print(f"Dataset built with {collected_count:,} products")
-    print(f"Total failures: {total_failures_count:,}")
+    print(f"Query '{query}' completed: {items_collected:,} items collected")
 
 
 if __name__ == "__main__":

@@ -1,11 +1,10 @@
 from datetime import datetime
-from typing import Any
 
+from asyncer import asyncify
 from pydantic import ConfigDict, field_validator
 from pydantic import HttpUrl as Url
 
 from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
-from hazmate.utils.frozendict import FrozenDict
 from hazmate.utils.oauth import OAuth2Session
 
 PRODUCT_URL = BASE_URL / "products"
@@ -37,8 +36,8 @@ class Picture(ApiResponseModel):
     id: str
     url: str
     suggested_for_picker: tuple[str, ...] | None = None
-    max_width: int
-    max_height: int
+    max_width: int | None = None
+    max_height: int | None = None
 
 
 class MainFeature(ApiResponseModel):
@@ -92,7 +91,7 @@ class Product(ApiResponseModel):
         return Url(v) if v else None
 
 
-def get_product(session: OAuth2Session, product_id: str) -> Product:
+async def get_product(session: OAuth2Session, product_id: str) -> Product:
     """Query a specific product from Meli API."""
     # Example of https://api.mercadolibre.com/products/$PRODUCT_ID
     #     {'attributes': [{'id': 'BRAND',
@@ -218,7 +217,7 @@ def get_product(session: OAuth2Session, product_id: str) -> Product:
 
     url = PRODUCT_URL / product_id
 
-    response = session.get(url.human_repr())
+    response = await session.get(url)
     response.raise_for_status()
 
     return Product.model_validate(response.json())

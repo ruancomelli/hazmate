@@ -1,7 +1,8 @@
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from datetime import datetime
 from typing import Any
 
+from asyncer import asyncify
 from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
 
@@ -44,7 +45,7 @@ class SearchResult(ApiResponseModel):
     pdp_types: tuple[str, ...]
     pictures: tuple[SearchPicture, ...]
     priority: str
-    quality_type: str
+    quality_type: str | None = None
     settings: SearchSettings
     site_id: str
     status: str
@@ -62,7 +63,7 @@ class SearchResponse(ApiResponseModel):
     used_attributes: tuple[Any, ...]
 
 
-def search_products(
+async def search_products(
     session: OAuth2Session,
     site_id: SiteId,
     query: str | None = None,
@@ -196,18 +197,18 @@ def search_products(
     if offset is not None:
         params["offset"] = offset
 
-    response = session.get(SEARCH_URL.human_repr(), params=params)
+    response = await session.get(SEARCH_URL, params=params)
     response.raise_for_status()
 
     return SearchResponse.model_validate(response.json())
 
 
-def search_products_paginated(
+async def search_products_paginated(
     session: OAuth2Session,
     site_id: SiteId,
     query: str | None = None,
     limit: int | None = None,
-) -> Iterator[SearchResponse]:
+) -> AsyncIterator[SearchResponse]:
     """Search for products in Meli API, paginated.
 
     Args:
@@ -219,7 +220,7 @@ def search_products_paginated(
     """
     offset = 0
     while True:
-        response = search_products(
+        response = await search_products(
             session,
             site_id=site_id,
             query=query,

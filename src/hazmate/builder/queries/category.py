@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+from asyncer import asyncify
 from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
 
@@ -87,7 +88,7 @@ class CategoryDetail(ApiResponseModel):
     total_items_in_this_category: int
 
 
-def get_category(session: OAuth2Session, category_id: str) -> CategoryDetail:
+async def get_category(session: OAuth2Session, category_id: str) -> CategoryDetail:
     """Get detailed information for a specific category from Meli API.
 
     Args:
@@ -241,7 +242,7 @@ def get_category(session: OAuth2Session, category_id: str) -> CategoryDetail:
 
     url = BASE_URL / "categories" / category_id
 
-    response = session.get(url.human_repr())
+    response = await session.get(url)
     response.raise_for_status()
 
     return CategoryDetail.model_validate(response.json())
