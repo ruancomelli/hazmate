@@ -61,10 +61,6 @@ class CategoryConfig(BaseModel):
 class CollectorConfig(BaseModel):
     """Configuration for the collector command."""
 
-    target_size: Annotated[
-        int,
-        Field(description="The number of products to collect."),
-    ]
     categories: Annotated[
         CategoryConfig,
         Field(description="The categories to collect."),

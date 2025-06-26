@@ -7,7 +7,11 @@ import csv
 from collections.abc import Iterator
 from pathlib import Path
 from pprint import pformat
+from typing import Annotated
 
+import typer
+from asyncer import runnify
+from requests.exceptions import HTTPError
 from rich.progress import Progress
 
 from hazmate.builder.auth import start_oauth_session
@@ -22,15 +26,46 @@ from hazmate.builder.queries.category_attributes import (
     get_category_attributes,
 )
 from hazmate.builder.queries.product import get_product
-from hazmate.builder.queries.search import SearchResult, search_products_paginated
+from hazmate.builder.queries.search import search_products_paginated
 from hazmate.utils.oauth import OAuth2Session
 
-OUTPUT_FILE = Path("data", "input_dataset.csv")
+QUERY_SIZE_LIMIT = 100
+MAX_CONSECUTIVE_FAILURES = 10  # Avoid infinite loops if many products fail
+OUTPUT_DIR = Path("data")
+
+app = typer.Typer()
 
 
-def main():
+@app.command()
+@runnify
+async def main(
+    target_size: Annotated[
+        int,
+        typer.Option(
+            "--target-size",
+            "-t",
+            help="Target size of the dataset",
+        ),
+    ] = 100_000,
+    config_path: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            "-c",
+            help="Path to the collector config file",
+        ),
+    ] = Path("collector-config.yaml"),
+    output_name: Annotated[
+        str,
+        typer.Option(
+            "--output-name",
+            "-o",
+            help="Name of the output file",
+        ),
+    ] = "input_dataset.csv",
+):
     auth_config = AuthConfig.from_dotenv(".env")
-    collector_config = CollectorConfig.from_yaml(Path("collector-config.yaml"))
+    collector_config = CollectorConfig.from_yaml(config_path)
 
     with start_oauth_session(auth_config) as session:
         api_categories_data = _collect_categories_with_subcategories_and_attributes(
@@ -41,12 +76,13 @@ def main():
         _validate_all_categories_are_in_config(collector_config, api_categories_data)
 
         # Save dataset to file
-        with OUTPUT_FILE.open("w") as f:
+        with (OUTPUT_DIR / output_name).open("w") as f:
             writer = csv.DictWriter(f, fieldnames=InputDatasetItem.model_fields)
             writer.writeheader()
             for result in _generate_input_dataset_items(
                 session,
                 collector_config,
+                target_size=target_size,
             ):
                 writer.writerow(result.model_dump())
 
@@ -162,19 +198,8 @@ def _validate_all_categories_are_in_config(
 def _generate_input_dataset_items(
     session: OAuth2Session,
     collector_config: CollectorConfig,
+    target_size: int,
 ) -> Iterator[InputDatasetItem]:
-    """Generate an input dataset of products from configured categories and queries."""
-    for search_result in _iter_all_search_results(session, collector_config):
-        yield InputDatasetItem.from_search_result_and_product(
-            search_result,
-            get_product(session, search_result.id),
-        )
-
-
-def _iter_all_search_results(
-    session: OAuth2Session,
-    collector_config: CollectorConfig,
-) -> Iterator[SearchResult]:
     """Build a dataset of products from configured categories and queries."""
 
     # Collect all queries from categories and extra queries
@@ -192,19 +217,20 @@ def _iter_all_search_results(
     print(f"Total queries to process: {len(all_queries)}")
 
     # Calculate how many products to collect per query (roughly equal distribution)
-    products_per_query = max(1, collector_config.target_size // len(all_queries))
-    remaining_products = collector_config.target_size
+    products_per_query = max(1, target_size // len(all_queries))
+    remaining_products = target_size
 
     collected_count = 0
+    total_failures_count = 0
 
     with Progress() as progress:
         main_task = progress.add_task(
             "Building dataset...",
-            total=collector_config.target_size,
+            total=target_size,
         )
 
         for i, (query, source_info) in enumerate(all_queries):
-            if collected_count >= collector_config.target_size:
+            if collected_count >= target_size:
                 break
 
             # Calculate how many items to collect from this query
@@ -223,25 +249,57 @@ def _iter_all_search_results(
 
             # Collect products from this query using pagination
             query_collected = 0
+            consecutive_failures = 0
+
             try:
                 for response in search_products_paginated(
                     session,
                     SiteId.BRAZIL,
                     query=query,
-                    limit=50,  # Collect in batches of 50
+                    limit=QUERY_SIZE_LIMIT,
                 ):
                     for result in response.results:
                         if query_collected >= target_from_query:
                             break
 
-                        yield result
+                        # Check if we've had too many consecutive failures
+                        if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                            progress.console.print(
+                                f"Skipping query '{query}' due to {consecutive_failures} consecutive product fetch failures"
+                            )
+                            break
 
-                        query_collected += 1
-                        collected_count += 1
-                        remaining_products -= 1
-                        progress.update(main_task, advance=1)
+                        try:
+                            product = get_product(session, result.id)
 
-                    if query_collected >= target_from_query:
+                            yield InputDatasetItem.from_search_result_and_product(
+                                result,
+                                product,
+                            )
+
+                            query_collected += 1
+                            collected_count += 1
+                            remaining_products -= 1
+                            consecutive_failures = 0  # Reset on success
+                            progress.update(main_task, advance=1)
+
+                        except HTTPError as e:
+                            if e.response.status_code == 404:
+                                # Product not found, skip this item
+                                consecutive_failures += 1
+                                total_failures_count += 1
+                                progress.console.print(
+                                    f"Product {result.id} not found (404), skipping..."
+                                )
+                                continue
+                            else:
+                                # Re-raise other HTTP errors
+                                raise
+
+                    if (
+                        query_collected >= target_from_query
+                        or consecutive_failures >= MAX_CONSECUTIVE_FAILURES
+                    ):
                         break
 
             except Exception as e:
@@ -250,11 +308,12 @@ def _iter_all_search_results(
                 continue
 
             progress.console.print(
-                f"Collected {query_collected:,} products from query '{query}'"
+                f"Collected {query_collected:,} products from query '{query}' ({source_info})"
             )
 
     print(f"Dataset built with {collected_count:,} products")
+    print(f"Total failures: {total_failures_count:,}")
 
 
 if __name__ == "__main__":
-    main()
+    app()
