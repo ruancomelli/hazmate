@@ -97,6 +97,8 @@ TODO:
 
 ### Evaluation
 
+One idea: items have attributes that can give us 100% accuracy - like "is flammable: true". This is good because it allows us to build an evaluation set.
+
 ### Deployment
 
 ### Updating

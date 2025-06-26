@@ -1,0 +1,27 @@
+from collections import Counter, defaultdict
+from pathlib import Path
+
+import typer
+
+from hazmate.builder.input_dataset import InputDatasetItem
+
+app = typer.Typer()
+
+
+@app.command()
+def list_attributes(input_dataset_path: Path):
+    attributes: defaultdict[str, Counter[str]] = defaultdict(Counter)
+    with open(input_dataset_path, "r") as f:
+        for row in f:
+            item = InputDatasetItem.model_validate_json(row)
+            for attribute in item.attributes:
+                attributes[attribute.name][attribute.value_name] += 1
+
+    for name, value_names in sorted(attributes.items()):
+        print(
+            f"{name}: {' | '.join(f'{value_name} ({count})' for value_name, count in value_names.most_common(10))}"
+        )
+
+
+if __name__ == "__main__":
+    app()

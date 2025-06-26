@@ -17,25 +17,25 @@ async def main():
     async with start_oauth_session(config) as session:
         for site_id in [SiteId.BRAZIL]:
             # Strange 403 Forbidden errors:
-            print("Example of https://api.mercadolibre.com/sites/$SITE_ID/search")
-            response = await session.get(
-                f"https://api.mercadolibre.com/sites/{site_id.value}/search",
-                params={"q": "smartphone", "limit": 5},
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            print(textwrap.indent(pformat(response_json), "    "))
+            # print("Example of https://api.mercadolibre.com/sites/$SITE_ID/search")
+            # response = await session.get(
+            #     f"https://api.mercadolibre.com/sites/{site_id.value}/search",
+            #     params={"q": "smartphone", "limit": 5},
+            # )
+            # response.raise_for_status()
+            # response_json = response.json()
+            # print(textwrap.indent(pformat(response_json), "    "))
 
-            print(
-                "Example of https://api.mercadolibre.com/sites/$SITE_ID/search?category=$CATEGORY_ID"
-            )
-            response = await session.get(
-                f"https://api.mercadolibre.com/sites/{site_id.value}/search",
-                params={"category": "MLB1055", "limit": 3},  # Electronics category
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            print(textwrap.indent(pformat(response_json), "    "))
+            # print(
+            #     "Example of https://api.mercadolibre.com/sites/$SITE_ID/search?category=$CATEGORY_ID"
+            # )
+            # response = await session.get(
+            #     f"https://api.mercadolibre.com/sites/{site_id.value}/search",
+            #     params={"category": "MLB1055", "limit": 3},  # Electronics category
+            # )
+            # response.raise_for_status()
+            # response_json = response.json()
+            # print(textwrap.indent(pformat(response_json), "    "))
 
             print("Example of https://api.mercadolibre.com/products/search")
             response = await session.get(
@@ -56,13 +56,13 @@ async def main():
             response_json = response.json()
             print(textwrap.indent(pformat(response_json), "    "))
 
-            print("Example of https://api.mercadolibre.com/items/$ITEM_ID/description")
-            response = await session.get(
-                f"https://api.mercadolibre.com/items/{example_product_id}/description",
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            print(textwrap.indent(pformat(response_json), "    "))
+            # print("Example of https://api.mercadolibre.com/items/$ITEM_ID/description")
+            # response = await session.get(
+            #     f"https://api.mercadolibre.com/items/{example_product_id}/description",
+            # )
+            # response.raise_for_status()
+            # response_json = response.json()
+            # print(textwrap.indent(pformat(response_json), "    "))
 
             print("Example of https://api.mercadolibre.com/sites/$SITE_ID/categories")
             response = await session.get(

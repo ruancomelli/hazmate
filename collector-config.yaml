@@ -1,7 +1,3 @@
-# Request 100_000, as required by the challenge, but add 100 for
-# manual labeling
-# target_size: 100_000 + 100
-target_size: 100
 categories:
   include:
     - id: MLB5672
@@ -15,6 +11,21 @@ categories:
         - aditivo radiador
         - limpa ar condicionado
         - graxa spray
+        - óleo motor
+        - fluido hidráulico
+        - combustível aditivo
+        - removedor de ferrugem
+        - desengraxante automotivo
+        - cera automotiva
+        - pneu
+        - bateria carro
+        - vela de ignição
+        - filtro de óleo
+        - para-choque
+        - retrovisor
+        - capacete
+        - lubrificante corrente
+        - spray desengripante
 
     - id: MLB271599
       name: Agro
@@ -24,6 +35,21 @@ categories:
         - herbicida
         - pesticida
         - raticida
+        - fungicida
+        - formicida
+        - acaricida
+        - nematicida
+        - bactericida
+        - adubo químico
+        - defensivo agrícola
+        - veneno rato
+        - mata formiga
+        - repelente insetos
+        - semente
+        - ração animal
+        - suplemento bovino
+        - sal mineral
+        - equipamento agrícola
 
     - id: MLB264586
       name: Saúde
@@ -33,6 +59,21 @@ categories:
         - desinfetante hospitalar
         - antisséptico
         - anestésico tópico
+        - álcool gel
+        - medicamento
+        - remédio
+        - vitamina
+        - suplemento
+        - iodo
+        - mercúrio cromo
+        - éter
+        - clorexidina
+        - formol
+        - termômetro
+        - seringa
+        - máscara cirúrgica
+        - luva descartável
+        - gaze
 
     - id: MLB1246
       name: Beleza e Cuidado Pessoal
@@ -42,6 +83,21 @@ categories:
         - alisante químico
         - tintura para cabelo
         - acetona
+        - esmalte
+        - perfume
+        - desodorante spray
+        - água oxigenada
+        - amônia capilar
+        - relaxante capilar
+        - shampoo
+        - condicionador
+        - creme hidratante
+        - batom
+        - base maquiagem
+        - pó compacto
+        - rímel
+        - sombra
+        - blush
 
     - id: MLB1574
       name: Casa, Móveis e Decoração
@@ -51,6 +107,21 @@ categories:
         - multiuso limpeza
         - removedor de mofo
         - limpa vidro
+        - detergente
+        - sabão em pó
+        - amaciante
+        - alvejante
+        - removedor manchas
+        - desentupidor
+        - inseticida casa
+        - repelente
+        - vela
+        - sofá
+        - mesa
+        - cadeira
+        - estante
+        - luminária
+        - tapete
 
     - id: MLB1500
       name: Construção
@@ -60,6 +131,21 @@ categories:
         - cimento cola
         - impermeabilizante
         - tinta spray
+        - tinta latex
+        - verniz
+        - massa corrida
+        - solvente tinta
+        - removedor tinta
+        - thinner
+        - aguarrás
+        - cimento
+        - argamassa
+        - cal
+        - tijolo
+        - telha
+        - parafuso
+        - prego
+        - martelo
 
     - id: MLB263532
       name: Ferramentas
@@ -69,6 +155,21 @@ categories:
         - lubrificante spray
         - removedor químico
         - desengripante
+        - WD-40
+        - óleo penetrante
+        - graxa industrial
+        - solda
+        - fluxo solda
+        - furadeira
+        - parafusadeira
+        - chave fenda
+        - alicate
+        - martelo
+        - serrote
+        - lima
+        - broca
+        - esmerilhadeira
+        - compressor
 
     - id: MLB1499
       name: Indústria e Comércio
@@ -78,6 +179,21 @@ categories:
         - óleo mineral
         - tinta industrial
         - produto químico
+        - ácido
+        - base química
+        - reagente
+        - catalisador
+        - aditivo químico
+        - desengraxante industrial
+        - limpador industrial
+        - máquina industrial
+        - equipamento
+        - motor elétrico
+        - bomba
+        - válvula
+        - mangueira
+        - uniforme
+        - EPI
 
     - id: MLB1403
       name: Alimentos e Bebidas
@@ -87,6 +203,21 @@ categories:
         - energético
         - álcool de cereais
         - conserva
+        - cerveja
+        - vinho
+        - whisky
+        - vodka
+        - cachaça
+        - refrigerante
+        - suco
+        - água
+        - café
+        - açúcar
+        - arroz
+        - feijão
+        - macarrão
+        - óleo de cozinha
+        - tempero
 
     - id: MLB1000
       name: Eletrônicos, Áudio e Vídeo
@@ -96,6 +227,21 @@ categories:
         - fonte 12v
         - controle remoto
         - pilha alcalina
+        - televisão
+        - som automotivo
+        - caixa de som
+        - fone de ouvido
+        - microfone
+        - cabo hdmi
+        - cabo usb
+        - adaptador
+        - rádio
+        - dvd player
+        - home theater
+        - amplificador
+        - subwoofer
+        - antena
+        - pilha comum
 
     - id: MLB1648
       name: Informática
@@ -105,6 +251,21 @@ categories:
         - bateria notebook
         - carregador usb-c
         - no-break
+        - computador
+        - monitor
+        - teclado
+        - mouse
+        - impressora
+        - scanner
+        - roteador
+        - modem
+        - hd externo
+        - pendrive
+        - memória ram
+        - placa de vídeo
+        - processador
+        - motherboard
+        - fonte pc
 
     - id: MLB1039
       name: Câmeras e Acessórios
@@ -114,6 +275,21 @@ categories:
         - limpador de lente
         - desumidificador
         - spray para lente
+        - câmera digital
+        - câmera profissional
+        - lente
+        - tripé
+        - case câmera
+        - cartão memória
+        - filtro uv
+        - estabilizador
+        - microfone lapela
+        - iluminador led
+        - cabo usb câmera
+        - carregador câmera
+        - alça câmera
+        - protetor tela
+        - mochila fotógrafo
 
     - id: MLB1144
       name: Games
@@ -123,6 +299,21 @@ categories:
         - bateria joystick
         - carregador controle
         - game boy
+        - playstation
+        - nintendo switch
+        - jogo ps4
+        - jogo xbox
+        - headset gamer
+        - teclado gamer
+        - mouse gamer
+        - cadeira gamer
+        - monitor gamer
+        - cabo hdmi game
+        - memória console
+        - controle sem fio
+        - arcade
+        - fliperama
+        - emulador
 
     - id: MLB3937
       name: Joias e Relógios
@@ -132,6 +323,21 @@ categories:
         - relógio de pulso
         - carregador smartwatch
         - estojo relógio
+        - anel
+        - colar
+        - pulseira
+        - brinco
+        - pingente
+        - corrente
+        - relógio feminino
+        - relógio masculino
+        - smartwatch
+        - relógio esportivo
+        - joia
+        - semi joia
+        - aliança
+        - óculos
+        - chaveiro
 
     - id: MLB1132
       name: Brinquedos e Hobbies
@@ -141,6 +347,21 @@ categories:
         - brinquedo com bateria
         - drone infantil
         - canetinha spray
+        - boneca
+        - carrinho
+        - lego
+        - puzzle
+        - jogo de tabuleiro
+        - bola
+        - bicicleta infantil
+        - patinete
+        - kit experimento
+        - massa de modelar
+        - tinta guache
+        - giz de cera
+        - quebra cabeça
+        - pelúcia
+        - brinquedo educativo
 
     - id: MLB1182
       name: Instrumentos Musicais
@@ -150,6 +371,21 @@ categories:
         - afinador digital
         - amplificador portátil
         - fonte pedalboard
+        - guitarra
+        - violão
+        - baixo
+        - teclado musical
+        - bateria acústica
+        - violino
+        - flauta
+        - saxofone
+        - trompete
+        - microfone vocal
+        - cabo p10
+        - corda guitarra
+        - palheta
+        - estante partitura
+        - metrônomo
 
     - id: MLB1071
       name: Animais
@@ -159,6 +395,21 @@ categories:
         - shampoo medicamentoso
         - spray repelente pet
         - desinfetante pet
+        - ração cachorro
+        - ração gato
+        - petisco
+        - coleira
+        - guia
+        - cama pet
+        - brinquedo pet
+        - casa cachorro
+        - aquário
+        - ração peixe
+        - vacina pet
+        - medicamento veterinário
+        - vitamina pet
+        - suplemento animal
+        - carrapaticida
 
     - id: MLB1367
       name: Antiguidades e Coleções
@@ -168,6 +419,21 @@ categories:
         - telefone antigo
         - kit químico antigo
         - relógio de corda
+        - moeda antiga
+        - selo
+        - cartão postal
+        - livro antigo
+        - revista antiga
+        - disco vinil
+        - fita k7
+        - máquina escrever
+        - câmera antiga
+        - boneca antiga
+        - carrinho antigo
+        - ferro antigo
+        - panela antiga
+        - vaso antigo
+        - quadro antigo
 
     - id: MLB1368
       name: Arte, Papelaria e Armarinho
@@ -177,6 +443,21 @@ categories:
         - verniz spray
         - fixador de carvão
         - tinta óleo
+        - pincel
+        - tela para pintura
+        - lápis
+        - caneta
+        - papel
+        - caderno
+        - borracha
+        - régua
+        - compasso
+        - esquadro
+        - cola bastão
+        - fita adesiva
+        - tesoura
+        - grampeador
+        - furador papel
 
     - id: MLB12404
       name: Festas e Lembrancinhas
@@ -186,6 +467,21 @@ categories:
         - serpentina
         - confete metálico
         - tinta neon
+        - balão
+        - balão metalizado
+        - festa infantil
+        - decoração festa
+        - prato descartável
+        - copo descartável
+        - guardanapo
+        - toalha mesa
+        - pirulito
+        - doce festa
+        - sacolinha lembrancinha
+        - adesivo personalizado
+        - convite
+        - chapéu festa
+        - máscara festa
 
     - id: MLB1384
       name: Bebês
@@ -195,6 +491,21 @@ categories:
         - termômetro digital
         - shampoo bebê
         - solução fisiológica
+        - fralda
+        - mamadeira
+        - chupeta
+        - berço
+        - carrinho bebê
+        - cadeirinha auto
+        - babador
+        - manta bebê
+        - brinquedo bebê
+        - móbile
+        - banheira bebê
+        - trocador
+        - roupinha bebê
+        - meinha bebê
+        - protetor solar bebê
 
     - id: MLB1051
       name: Celulares e Telefones
@@ -204,6 +515,21 @@ categories:
         - bateria celular
         - power bank
         - carregador turbo
+        - smartphone
+        - iphone
+        - samsung
+        - xiaomi
+        - motorola
+        - capinha celular
+        - película
+        - fone bluetooth
+        - carregador sem fio
+        - suporte celular
+        - cabo usb
+        - adaptador
+        - chip
+        - cartão memória
+        - telefone fixo
 
     - id: MLB5726
       name: Eletrodomésticos
@@ -213,6 +539,21 @@ categories:
         - ferro de passar
         - vaporizador
         - lava-louças
+        - geladeira
+        - freezer
+        - fogão
+        - microondas
+        - liquidificador
+        - batedeira
+        - cafeteira
+        - torradeira
+        - sanduicheira
+        - ventilador
+        - ar condicionado
+        - aquecedor
+        - umidificador
+        - purificador água
+        - máquina lavar
 
     - id: MLB1276
       name: Esportes e Fitness
@@ -222,6 +563,21 @@ categories:
         - gás co2
         - mochila de hidratação
         - canivete
+        - whey protein
+        - creatina
+        - bcaa
+        - termogênico
+        - queimador gordura
+        - tênis esportivo
+        - camiseta esportiva
+        - shorts
+        - legging
+        - top fitness
+        - halteres
+        - elástico exercício
+        - colchonete
+        - bicicleta
+        - esteira
 
     - id: MLB1953
       name: Mais Categorias
@@ -231,6 +587,21 @@ categories:
         - inflamável
         - tóxico
         - perigoso
+        - material perigoso
+        - substância controlada
+        - produto restrito
+        - material explosivo
+        - corrosivo
+        - radioativo
+        - biológico
+        - cancerígeno
+        - mutagênico
+        - teratogênico
+        - item regulamentado
+        - transporte especial
+        - manuseio cuidadoso
+        - armazenamento especial
+        - descarte especial
 
   exclude:
     - id: MLB1743
@@ -254,22 +625,168 @@ categories:
     - id: MLB1168
       name: Música, Filmes e Seriados
 extra_queries:
+  # Hazmat - Batteries and Energy Storage
   - bateria de lítio
   - carregador portátil
   - pilha recarregável
   - power bank
   - bateria explosiva
+  - bateria 18650
+  - bateria ion-lítio
+  - bateria polímero
+  - bateria selada
+  - bateria automotiva
+  - bateria moto
+  - bateria náutica
+  - bateria solar
+  - bateria ups
+  - carregador inteligente
+
+  # Hazmat - Flammable Products
   - produto inflamável
-  - produto corrosivo
+  - líquido inflamável
   - spray aerossol
-  - desentupidor químico
-  - removedor potente
+  - gás inflamável
+  - combustível
+  - etanol
+  - metanol
+  - gasolina
+  - diesel
+  - querosene
+  - álcool combustível
+  - gás GLP
+  - gás butano
+  - gás propano
+  - acetileno
+
+  # Hazmat - Corrosive Products
+  - produto corrosivo
   - ácido muriático
+  - ácido sulfúrico
+  - ácido nítrico
+  - ácido clorídrico
+  - ácido fosfórico
   - soda cáustica
-  - reagente químico
+  - hidróxido sódio
+  - cal virgem
+  - amônia
+  - potassa cáustica
+  - hipoclorito
+  - peróxido
+  - água oxigenada
+  - branqueador
+
+  # Hazmat - Toxic Products
   - produto tóxico
-  - frasco químico
-  - inflamável
+  - veneno
+  - pesticida
+  - herbicida
+  - fungicida
+  - raticida
+  - formicida
+  - inseticida
+  - rodenticida
+  - acaricida
+  - nematicida
+  - bactericida
+  - algicida
+  - moluscicida
+  - avicida
+
+  # Hazmat - Solvents and Chemicals
+  - solvente
+  - thinner
+  - aguarrás
+  - acetona
+  - éter
+  - benzeno
+  - tolueno
+  - xileno
+  - tricloroetileno
+  - clorofórmio
+  - removedor potente
+  - desengraxante
+  - decapante
+  - reagente químico
+  - catalisador
+
+  # Hazmat - Oxidizers
+  - oxidante
+  - peróxido hidrogênio
+  - permanganato
+  - nitrato
+  - clorato
+  - perclorato
+  - cromato
+  - dicromato
+  - hipoclorito cálcio
+  - ozônio
+  - oxigênio líquido
+  - peróxido benzoíla
+  - peróxido acetona
+  - ácido pícrico
+  - nitrocelulose
+
+  # Hazmat - Pressurized Containers
+  - embalagem pressurizada
+  - spray pressurizado
+  - extintor
+  - cilindro gás
+  - botijão
+  - aerossol
+  - spray fixador
+  - spray lubrificante
+  - spray tinta
+  - compressor ar
+  - tanque pressão
+  - recipiente pressão
+  - válvula pressão
+  - regulador pressão
+  - manômetro
+
+  # Hazmat - Radioactive and Biological
+  - radioativo
+  - material radioativo
+  - detector radiação
+  - medidor radiação
+  - contador geiger
+  - fonte radioativa
+  - isótopo
+  - urânio
+  - tório
+  - rádio
+  - césio
+  - cobalto
+  - amerício
+  - biológico
+  - patógeno
+
+  # Hazmat - Explosive Materials
+  - explosivo
+  - material explosivo
+  - pólvora
+  - dinamite
+  - TNT
+  - nitrato amônio
+  - peróxido acetona
+  - fulminato
+  - pólvora negra
+  - cordite
+  - nitroglicerina
+  - pentrita
+  - hexogênio
+  - octogênio
+  - artifício
+
+  # Hazmat - Dangerous Goods Labels
+  - classe perigosa
+  - etiqueta perigo
+  - símbolo perigo
+  - pictograma
+  - caveira
+  - chama
+  - explosão
+  - corrosão
   - tóxico
   - nocivo à saúde
   - perigo de explosão
@@ -278,20 +795,154 @@ extra_queries:
   - contém álcool
   - produto com validade
   - armazenar com cuidado
-  - embalagem pressurizada
   - restrição aérea
   - transporte perigoso
   - envio restrito
   - não pode ser enviado
   - não enviado pelos correios
-  - líquido inflamável
   - pó químico
   - substância perigosa
   - produto sujeito a regulação
   - item regulamentado
-  # Optional: safe decoys for balance
+  - licença anvisa
+  - autorização ibama
+  - registro ministério
+  - controle exercito
+  - substância controlada
+  - lista d1
+  - lista d2
+  - lista e
+  - lista f
+
+  # Hazmat - Industrial Chemicals
+  - químico industrial
+  - matéria prima
+  - insumo químico
+  - produto químico
+  - reagente laboratorial
+  - padrão analítico
+  - indicador químico
+  - solvente técnico
+  - ácido técnico
+  - base técnica
+  - sal químico
+  - óxido metálico
+  - sulfato
+  - cloreto
+  - nitrato
+  - fosfato
+  - carbonato
+  - bicarbonato
+  - hidróxido
+  - peróxido
+
+  # Safe Products for Balance
   - pelúcia infantil
   - livro didático
   - copo de plástico
   - caneca
   - caderno espiral
+  - lápis escolar
+  - borracha
+  - régua
+  - esquadro
+  - transferidor
+  - estojo escolar
+  - mochila escolar
+  - uniforme escolar
+  - tênis casual
+  - sandália
+  - chinelo
+  - sapato
+  - bota
+  - meia
+  - cueca
+  - calcinha
+  - sutiã
+  - pijama
+  - camisola
+  - roupão
+  - toalha banho
+  - toalha rosto
+  - lençol
+  - fronha
+  - edredom
+  - cobertor
+  - travesseiro
+  - almofada
+  - cortina
+  - persiana
+  - tapete decorativo
+  - quadro decorativo
+  - vaso decorativo
+  - plantas artificiais
+  - flores artificiais
+  - boneca de pano
+  - ursinho pelúcia
+  - carrinho brinquedo
+  - bola plástico
+  - puzzle infantil
+  - jogo memória
+  - dominó
+  - baralho
+  - dado
+  - peão
+  - tabuleiro
+  - corda pular
+  - peteca
+  - pipa
+  - bilboquê
+  - ioiô
+  - pião
+  - bolinha gude
+  - massinha modelar
+  - giz cera
+  - tinta guache
+  - papel colorido
+  - cartolina
+  - papel crepom
+  - papel laminado
+  - papel contact
+  - papel presente
+  - fita presente
+  - laço decorativo
+  - envelope
+  - convite simples
+  - cartão
+  - postal
+  - agenda
+  - calendário
+  - bloco notas
+  - post-it
+  - clips
+  - grampos
+  - elástico
+  - barbante
+  - linha costura
+  - agulha
+  - alfinete
+  - botão
+  - zíper
+  - velcro
+  - fita métrica
+  - dedal
+  - tesoura comum
+  - estilete
+  - furador comum
+  - grampeador comum
+  - removedor grampos
+  - pasta arquivo
+  - fichário
+  - divisória
+  - etiqueta
+  - carimbo
+  - almofada carimbo
+  - tinta carimbo
+  - marcador texto
+  - caneta esferográfica
+  - caneta gel
+  - lápis mecânico
+  - grafite
+  - apontador
+  - corretivo
+  - fita corretiva

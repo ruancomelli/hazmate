@@ -1,17 +1,9 @@
 """An adapter for the `requests_oauthlib` library that ensures a cache is used."""
 
-from pathlib import Path
-from types import TracebackType
-
-import requests_cache
-
-CACHE_DIR = Path(".cache")
-# Install the cache before importing any modules that use the requests library
-# I'm not sure why this is necessary, but it is - without it, the cache is not used
-requests_cache.install_cache(str(CACHE_DIR / "requests"))
-
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+from pathlib import Path
+from types import TracebackType
 from typing import Any, Self
 
 import requests
