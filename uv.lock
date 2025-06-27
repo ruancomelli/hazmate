@@ -774,6 +774,7 @@ dependencies = [
     { name = "langchain-chroma" },
     { name = "langchain-community" },
     { name = "langchain-google-genai" },
+    { name = "langchain-openai" },
     { name = "loguru" },
     { name = "openai" },
     { name = "pydantic" },
@@ -807,6 +808,7 @@ requires-dist = [
     { name = "langchain-chroma", specifier = ">=0.2.4" },
     { name = "langchain-community", specifier = ">=0.3.26" },
     { name = "langchain-google-genai", specifier = ">=2.1.5" },
+    { name = "langchain-openai", specifier = ">=0.3.27" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.11.7" },
@@ -1190,6 +1192,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2a/a5/d9b8d5afdf4a33f13e7d973f2705891cd13cc1dfb578719c9861a8d8385b/langchain_google_genai-2.1.5.tar.gz", hash = "sha256:6e71375a7707667bdecc5a7d1c86438ec10f2c7bb6dc6e3f095f5b22523c4fc9", size = 40813, upload-time = "2025-05-28T13:49:09.574Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5e/70/0747358eca996f713f715e2bfc2d0805804f8f705af57381fbee91bb475a/langchain_google_genai-2.1.5-py3-none-any.whl", hash = "sha256:6c8ccaf33a41f83b1d08a2398edbf47a1eebea27a7ec6930f34a0c019f309253", size = 44788, upload-time = "2025-05-28T13:49:08.22Z" },
+]
+
+[[package]]
+name = "langchain-openai"
+version = "0.3.27"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "openai" },
+    { name = "tiktoken" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6f/7b/e65261a08a03dd43f0ef8a539930b56548ac8136e71258c220d3589d1d07/langchain_openai-0.3.27.tar.gz", hash = "sha256:5d5a55adbff739274dfc3a4102925771736f893758f63679b64ae62fed79ca30", size = 753326, upload-time = "2025-06-27T17:56:29.904Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/31/1f0baf6490b082bf4d06f355c5e9c28728931dbf321f3ca03137617a692e/langchain_openai-0.3.27-py3-none-any.whl", hash = "sha256:efe636c3523978c44adc41cf55c8b3766c05c77547982465884d1258afe705df", size = 70368, upload-time = "2025-06-27T17:56:28.726Z" },
 ]
 
 [[package]]

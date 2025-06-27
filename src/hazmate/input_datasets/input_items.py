@@ -161,7 +161,3 @@ class HazmatInputItem(BaseModel):
         content_parts.append("</item>")
 
         return "\n".join(content_parts)
-
-
-# Backward compatibility alias
-InputDatasetItem = HazmatInputItem

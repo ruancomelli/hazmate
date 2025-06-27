@@ -6,12 +6,14 @@ from pathlib import Path
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from typing_extensions import Self
 
 from hazmate.agent.hazmat_traits import HazmatTrait, KnownHazmatTrait, OtherHazmatTrait
 from hazmate.agent.labeled_items import HazmatLabeledItem
-from hazmate.input_datasets.input_items import InputDatasetItem
+from hazmate.input_datasets.input_items import HazmatInputItem
 
 logger = logging.getLogger(__name__)
 
@@ -24,19 +26,28 @@ class ExampleStore:
     and provides similarity search to retrieve relevant examples for InputDatasetItems.
     """
 
-    embedding_function: GoogleGenerativeAIEmbeddings
+    embedding_function: Embeddings
     vector_store: Chroma
 
     @classmethod
     def from_embedding_model_name_and_persist_directory(
         cls,
         persist_directory: str | Path | None = None,
-        embedding_model_name: str = "models/gemini-embedding-exp-03-07",
+        embedding_model_name: str = "google:models/gemini-embedding-exp-03-07",
     ) -> Self:
         """Create an ExampleStore instance from configuration options."""
-        embedding_function = GoogleGenerativeAIEmbeddings(
-            model=embedding_model_name, task_type="RETRIEVAL_DOCUMENT"
-        )
+        embedding_function: Embeddings
+        if embedding_model_name.startswith("google:"):
+            embedding_function = GoogleGenerativeAIEmbeddings(
+                model=embedding_model_name.removeprefix("google:"),
+                task_type="retrieval_document",
+            )
+        elif embedding_model_name.startswith("openai:"):
+            embedding_function = OpenAIEmbeddings(
+                model=embedding_model_name.removeprefix("openai:")
+            )
+        else:
+            raise ValueError(f"Invalid embedding model name: {embedding_model_name}")
 
         if persist_directory is not None:
             Path(persist_directory).mkdir(parents=True, exist_ok=True)
@@ -102,7 +113,7 @@ class ExampleStore:
 
         return Document(page_content=page_content, metadata=metadata)
 
-    def _input_item_to_query(self, input_item: InputDatasetItem) -> str:
+    def _input_item_to_query(self, input_item: HazmatInputItem) -> str:
         """Convert an InputDatasetItem to a search query."""
         # Create a query that focuses on the key characteristics
         query_parts = [f"Product: {input_item.name}"]
@@ -169,7 +180,7 @@ class ExampleStore:
 
     def retrieve(
         self,
-        input_item: InputDatasetItem,
+        input_item: HazmatInputItem,
         count: int = 5,
     ) -> list[HazmatLabeledItem]:
         """Retrieve the most similar examples for the given input item.

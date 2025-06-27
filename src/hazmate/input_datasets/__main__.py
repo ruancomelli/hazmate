@@ -32,7 +32,7 @@ from rich.table import Table
 from hazmate.input_datasets.auth import start_oauth_session
 from hazmate.input_datasets.auth_config import AuthConfig
 from hazmate.input_datasets.collector_config import CollectorConfig
-from hazmate.input_datasets.input_items import InputDatasetItem
+from hazmate.input_datasets.input_items import HazmatInputItem
 from hazmate.input_datasets.queries.base import SiteId
 from hazmate.input_datasets.queries.categories import get_categories
 from hazmate.input_datasets.queries.category import (
@@ -79,7 +79,7 @@ async def main(
             "-c",
             help="Path to the collector config file",
         ),
-    ] = Path("collector-config.yaml"),
+    ] = Path("hazmat-collector-config.yaml"),
     output_name: Annotated[
         str,
         typer.Option(
@@ -109,7 +109,7 @@ async def main(
         _validate_all_categories_are_in_config(collector_config, api_categories_data)
 
         # Collect items for statistics
-        collected_items: list[InputDatasetItem] = []
+        collected_items: list[HazmatInputItem] = []
 
         # Save dataset to file
         output_path = OUTPUT_DIR / output_name
@@ -147,7 +147,7 @@ async def main(
 
 
 def _calculate_and_display_statistics(
-    items: list[InputDatasetItem], output_filename: str
+    items: list[HazmatInputItem], output_filename: str
 ) -> None:
     """Calculate and display interesting statistics about the collected dataset."""
     console = Console()
@@ -467,7 +467,7 @@ async def _generate_input_dataset_items(
     progress_tracker: Progress,
     main_progress_task: TaskID,
     goal: Goal,
-) -> AsyncIterator[InputDatasetItem]:
+) -> AsyncIterator[HazmatInputItem]:
     """Build a dataset of products from configured categories and queries - elegant async version."""
 
     # Collect all queries
@@ -510,7 +510,7 @@ async def _generate_input_dataset_items(
 async def _items_from_query(
     session: OAuth2Session,
     query: str,
-) -> AsyncIterator[InputDatasetItem]:
+) -> AsyncIterator[HazmatInputItem]:
     """Generate items from a single query - simple async iterator."""
     consecutive_failures = 0
     items_collected = 0
@@ -543,7 +543,7 @@ async def _items_from_query(
                 if product is None:
                     continue
 
-                item = InputDatasetItem.from_search_result_and_product(
+                item = HazmatInputItem.from_search_result_and_product(
                     search_result,
                     product,
                 )

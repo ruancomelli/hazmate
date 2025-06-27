@@ -28,13 +28,15 @@ The OAuth flow starts automatically when the application is run.
 
 ## Devlog
 
+In this section, I will describe the decisions I made and the process I went through to build the project, including the difficulties I faced and how I overcame or worked around them.
+
 ### Data Collection
 
 To build the dataset of potential hazmat items, I decided to use MercadoLibre's API.
 
-#### Authorization
-
 <!-- TODO: explain why I preferred the API over scraping; namely: more reliable, allows me to send queries, less complicated, less chance of getting blocked, simpler to implement, etc. -->
+
+#### Authorization
 
 This was honestly the single most time-consuming part of the project. I spent a lot of time trying to figure out how to set up the redirect URL to receive the authorization code and manage the authorization code, access tokens, and refresh tokens.
 
