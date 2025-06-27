@@ -1,8 +1,7 @@
 """Example of how to use the categories query."""
 
-from pprint import pprint
-
 from asyncer import runnify
+from rich import print
 
 from hazmate.input_datasets.auth import start_oauth_session
 from hazmate.input_datasets.auth_config import AuthConfig
@@ -16,7 +15,9 @@ async def main():
 
     async with start_oauth_session(config) as session:
         categories = await get_categories(session, SiteId.BRAZIL)
-        pprint(categories)
+        print(f"[bold green]Found {len(categories)} categories:[/bold green]")
+        for category in categories:
+            print(f"[cyan]•[/cyan] {category.name} ([blue]{category.id}[/blue])")
 
 
 if __name__ == "__main__":

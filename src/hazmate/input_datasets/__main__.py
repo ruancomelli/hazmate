@@ -14,7 +14,9 @@ from typing import Annotated, assert_never
 
 import typer
 from asyncer import runnify
+from loguru import logger
 from requests.exceptions import HTTPError
+from rich import print
 from rich.console import Console
 from rich.progress import (
     BarColumn,
@@ -33,7 +35,11 @@ from hazmate.input_datasets.collector_config import CollectorConfig
 from hazmate.input_datasets.input_items import InputDatasetItem
 from hazmate.input_datasets.queries.base import SiteId
 from hazmate.input_datasets.queries.categories import get_categories
-from hazmate.input_datasets.queries.category import CategoryDetail, ChildCategory, get_category
+from hazmate.input_datasets.queries.category import (
+    CategoryDetail,
+    ChildCategory,
+    get_category,
+)
 from hazmate.input_datasets.queries.category_attributes import (
     CategoryAttribute,
     get_category_attributes,
@@ -471,8 +477,8 @@ async def _generate_input_dataset_items(
         for query in category.queries
     ] + list(collector_config.extra_queries)
 
-    print(f"Starting parallel collection from {len(all_queries)} queries")
-    print(f"Target size: {target_size:,}")
+    logger.info(f"Starting parallel collection from {len(all_queries)} queries")
+    logger.info(f"Target size: {target_size:,}")
 
     # Create async iterators for each query
     query_iterators = [_items_from_query(session, query=query) for query in all_queries]
@@ -498,7 +504,7 @@ async def _generate_input_dataset_items(
             description=f"[green]Collecting items... ({count:,} / {target_size:,})[/green]",
         )
 
-    print(f"Collection complete: {count:,} items")
+    print(f"[bold green]Collection complete: {count:,} items[/bold green]")
 
 
 async def _items_from_query(
@@ -546,11 +552,11 @@ async def _items_from_query(
                 consecutive_failures = 0
 
             except HTTPError as e:
-                print(f"HTTP error in query '{query}': {e}")
+                logger.error(f"HTTP error in query '{query}': {e}")
                 consecutive_failures += 1
                 continue
 
-    print(f"Query '{query}' completed: {items_collected:,} items collected")
+    logger.info(f"Query '{query}' completed: {items_collected:,} items collected")
 
 
 async def _maybe_get_product(
@@ -561,7 +567,7 @@ async def _maybe_get_product(
     try:
         return await get_product(session, product_id)
     except HTTPError as e:
-        print(f"HTTP error in product '{product_id}': {e}")
+        logger.error(f"HTTP error in product '{product_id}': {e}")
         return None
 
 

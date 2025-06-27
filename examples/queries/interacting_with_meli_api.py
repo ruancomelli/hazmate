@@ -4,6 +4,7 @@ import textwrap
 from pprint import pformat
 
 from asyncer import runnify
+from rich import print
 
 from hazmate.input_datasets.auth import start_oauth_session
 from hazmate.input_datasets.auth_config import AuthConfig
@@ -37,7 +38,9 @@ async def main():
             # response_json = response.json()
             # print(textwrap.indent(pformat(response_json), "    "))
 
-            print("Example of https://api.mercadolibre.com/products/search")
+            print(
+                "[bold blue]Example of https://api.mercadolibre.com/products/search[/bold blue]"
+            )
             response = await session.get(
                 "https://api.mercadolibre.com/products/search",
                 params={"q": "dinossauro", "site_id": site_id.value, "limit": 10},
@@ -48,7 +51,9 @@ async def main():
 
             example_product_id = response_json["results"][0]["id"]
 
-            print("Example of https://api.mercadolibre.com/products/$PRODUCT_ID")
+            print(
+                "[bold blue]Example of https://api.mercadolibre.com/products/$PRODUCT_ID[/bold blue]"
+            )
             response = await session.get(
                 f"https://api.mercadolibre.com/products/{example_product_id}",
             )
@@ -64,7 +69,9 @@ async def main():
             # response_json = response.json()
             # print(textwrap.indent(pformat(response_json), "    "))
 
-            print("Example of https://api.mercadolibre.com/sites/$SITE_ID/categories")
+            print(
+                "[bold blue]Example of https://api.mercadolibre.com/sites/$SITE_ID/categories[/bold blue]"
+            )
             response = await session.get(
                 f"https://api.mercadolibre.com/sites/{site_id.value}/categories",
             )
@@ -74,7 +81,9 @@ async def main():
 
             example_category_id = response_json[0]["id"]
 
-            print("Example of https://api.mercadolibre.com/categories/$CATEGORY_ID")
+            print(
+                "[bold blue]Example of https://api.mercadolibre.com/categories/$CATEGORY_ID[/bold blue]"
+            )
             response = await session.get(
                 f"https://api.mercadolibre.com/categories/{example_category_id}",
             )
@@ -83,7 +92,7 @@ async def main():
             print(textwrap.indent(pformat(response_json), "    "))
 
             print(
-                "Example of https://api.mercadolibre.com/categories/$CATEGORY_ID/attributes"
+                "[bold blue]Example of https://api.mercadolibre.com/categories/$CATEGORY_ID/attributes[/bold blue]"
             )
             response = await session.get(
                 f"https://api.mercadolibre.com/categories/{example_category_id}/attributes",

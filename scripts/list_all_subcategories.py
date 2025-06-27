@@ -1,5 +1,8 @@
 """Example of getting all subcategories and their attributes."""
 
+from asyncer import runnify
+from rich import print
+
 from hazmate.input_datasets.auth import start_oauth_session
 from hazmate.input_datasets.auth_config import AuthConfig
 from hazmate.input_datasets.queries.base import SiteId
@@ -8,23 +11,24 @@ from hazmate.input_datasets.queries.category import get_category
 from hazmate.input_datasets.queries.category_attributes import get_category_attributes
 
 
-def main():
+@runnify
+async def main():
     config = AuthConfig.from_dotenv(".env")
 
-    with start_oauth_session(config) as session:
+    async with start_oauth_session(config) as session:
         total_subcategories_count = 0
         total_items_count = 0
 
-        categories = list(get_categories(session, SiteId.BRAZIL))
+        categories = await get_categories(session, SiteId.BRAZIL)
 
         for category_ref in categories:
-            category = get_category(session, category_ref.id)
+            category = await get_category(session, category_ref.id)
 
             subcategories_count = len(category.children_categories)
             items_count = category.total_items_in_this_category
 
             print(
-                f"{category.name} ({subcategories_count} children | {items_count} items)"
+                f"[bold blue]{category.name}[/bold blue] ([cyan]{subcategories_count} children[/cyan] | [green]{items_count} items[/green])"
             )
 
             total_subcategories_count += subcategories_count
@@ -32,15 +36,17 @@ def main():
 
             for child_category in category.children_categories:
                 print(
-                    f"    {child_category.name} ({child_category.total_items_in_this_category} items)"
+                    f"    [blue]{child_category.name}[/blue] ([green]{child_category.total_items_in_this_category} items[/green])"
                 )
 
-                for attribute in get_category_attributes(session, child_category.id):
-                    print(f"        {attribute.name}")
+                attributes = await get_category_attributes(session, child_category.id)
+                for attribute in attributes:
+                    print(f"        [cyan]• {attribute.name}[/cyan]")
 
-        print(f"Total categories: {len(categories)}")
-        print(f"Total subcategories: {total_subcategories_count}")
-        print(f"Total items: {total_items_count:,}")
+        print("\n[bold green]Summary:[/bold green]")
+        print(f"[cyan]Total categories:[/cyan] {len(categories)}")
+        print(f"[cyan]Total subcategories:[/cyan] {total_subcategories_count}")
+        print(f"[cyan]Total items:[/cyan] {total_items_count:,}")
 
 
 if __name__ == "__main__":

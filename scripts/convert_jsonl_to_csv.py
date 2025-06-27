@@ -6,13 +6,16 @@ from pathlib import Path
 from typing import Any
 
 import typer
+from rich import print
 
 app = typer.Typer()
 
 
 def convert_jsonl_to_csv(jsonl_path: Path, csv_path: Path):
+    print(f"[blue]Converting[/blue] {jsonl_path} [blue]to[/blue] {csv_path}")
     with open(jsonl_path, "r") as f:
         write_csv(csv_path, (json.loads(line) for line in f))
+    print(f"[green]✅ Conversion complete[/green]")
 
 
 def write_csv(csv_path: Path, data: Iterable[dict[str, Any]]):

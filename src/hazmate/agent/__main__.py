@@ -4,13 +4,10 @@ from typing import Annotated
 import dotenv
 import typer
 from asyncer import runnify
-from pydantic_ai.models import Model
-from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.providers.openai import OpenAIProvider
+from loguru import logger
+from rich import print
 
 from hazmate.agent.agent import HazmatAgent
-from hazmate.agent.labeled_items import HazmatLabeledItem
-from hazmate.agent.predictions import HazmatPrediction
 from hazmate.input_datasets.input_items import HazmatInputItem
 from hazmate.utils.tokens import estimate_token_count
 
@@ -36,13 +33,6 @@ async def main(
             help="Path to the output dataset",
         ),
     ] = Path("data", "output_dataset.jsonl"),
-    output_predictions_only: Annotated[
-        bool,
-        typer.Option(
-            "--predictions-only",
-            help="Output predictions only (HazmatPrediction), not the full dataset with input data",
-        ),
-    ] = False,
     batch_size: Annotated[
         int,
         typer.Option(
@@ -73,20 +63,8 @@ async def main(
 ):
     dotenv.load_dotenv()
 
-    model: Model | str
-    if model_name.startswith("ollama:"):
-        splits = model_name.split("@")
-        model_name = splits[0].removeprefix("ollama:")
-        port = splits[1] if len(splits) > 1 else 11434
-        model = OpenAIModel(
-            model_name=model_name,
-            provider=OpenAIProvider(base_url=f"http://localhost:{port}/v1"),
-        )
-    else:
-        model = model_name
-
     agent = HazmatAgent.from_model_and_mcp_servers(
-        model_name=model,
+        model_name=model_name,
         mcp_servers=(),
     )
 
@@ -95,9 +73,10 @@ async def main(
 
     items_to_process = list(items)
 
+    output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w") as f:
         while items_to_process:
-            print(f"Items to process: {len(items_to_process)}")
+            print(f"[cyan]Items to process:[/cyan] {len(items_to_process)}")
 
             if len(items_to_process) < batch_size:
                 batch = items_to_process
@@ -119,10 +98,10 @@ async def main(
                     raise ValueError(
                         f"Batch of {len(batch)} items is too large, and cannot be reduced further"
                     )
-                print(
+                logger.warning(
                     f"Estimated token count of {estimated_token_count} exceeds max input tokens of {max_input_tokens}"
                 )
-                print(
+                logger.info(
                     f"Batch of {len(batch)} items is too large, reducing to {len(batch) // 2}"
                 )
                 items_to_process.extend(batch[: len(batch) // 2])
@@ -134,25 +113,22 @@ async def main(
                 )
 
             try:
-                if output_predictions_only:
-                    # Output just the predictions (HazmatPrediction)
-                    predictions = await agent.predict_batch(batch)
-                    print(f"    Processed {len(predictions)} predictions")
-                    for prediction in predictions:
-                        f.write(prediction.model_dump_json() + "\n")
-                else:
-                    # Output combined input+prediction data (HazmatLabeledItem)
-                    results = await agent.classify_batch(batch)
-                    processed_ids = {result.item_id for result in results}
-                    print(f"    Processed IDs: {processed_ids}")
-                    # Re-add items that were not processed
-                    items_to_process.extend(
-                        item for item in batch if item.item_id not in processed_ids
-                    )
-                    for result in results:
-                        f.write(result.model_dump_json() + "\n")
+                print(f"[green]Classifying batch of {len(batch)} items...[/green]")
+                results = await agent.classify_batch(
+                    batch,
+                    include_attributes=False,
+                    allow_mismatched_predictions=True,
+                )
+                processed_ids = {result.item_id for result in results}
+                print(f"    [blue]Processed IDs:[/blue] {processed_ids}")
+                # Re-add items that were not processed
+                items_to_process.extend(
+                    item for item in batch if item.item_id not in processed_ids
+                )
+                for result in results:
+                    f.write(result.model_dump_json() + "\n")
             except Exception as e:
-                print(f"   ❌ Error processing batch - trying again: {e}")
+                logger.error(f"Error processing batch - trying again: {e}")
                 # Add items back to process list
                 items_to_process.extend(batch)
 

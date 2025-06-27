@@ -1,4 +1,5 @@
 from asyncer import runnify
+from rich import print
 
 from hazmate.input_datasets.auth import start_oauth_session
 from hazmate.input_datasets.auth_config import AuthConfig
@@ -19,8 +20,9 @@ async def main():
                 query="dinossauro",
             ),
         ):
+            print(f"[bold blue]Page {index}:[/bold blue]")
             for subindex, result in enumerate(response.results):
-                print(f"{index}.{subindex} -> {result.name}")
+                print(f"  [cyan]{index}.{subindex}[/cyan] -> {result.name}")
 
 
 if __name__ == "__main__":

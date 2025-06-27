@@ -6,16 +6,27 @@ for hazmat detection without complex RAG/MCP tooling.
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Self
+from typing import Literal, Self, assert_never
 
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
 from pydantic_ai.models import Model
 
-from hazmate.agent.labeled_items import HazmatLabeledItem
+from hazmate.agent.labeled_items import HazmatLabeledItem, MismatchedItemIdsError
 from hazmate.agent.predictions import HazmatPrediction
 from hazmate.input_datasets.input_items import HazmatInputItem
 from hazmate.utils.text import clean_text
+
+
+class MismatchedPredictionsError(ValueError):
+    """Error raised when predictions are missing for some items."""
+
+    def __init__(self, input_ids: set[str], prediction_ids: set[str]):
+        super().__init__(
+            f"Requested predictions for {sorted(input_ids)} but only got {sorted(prediction_ids)} - missing {sorted(input_ids - prediction_ids)}"
+        )
+        self.input_ids = input_ids
+        self.prediction_ids = prediction_ids
 
 
 @dataclass(frozen=True)
@@ -128,6 +139,7 @@ class HazmatAgent:
         item: HazmatInputItem,
         include_item_id: bool = True,
         include_attributes: bool = True,
+        on_different_id: Literal["raise", "fix", "ignore"] = "raise",
     ) -> HazmatPrediction:
         """Predict hazmat classification for a single item.
 
@@ -144,14 +156,22 @@ class HazmatAgent:
             include_item_id=include_item_id,
             include_attributes=include_attributes,
         )
-
-        # Run the agent
         result = await self.agent.run(prompt)
         prediction = result.output
 
-        # Ensure the item_id is set correctly (in case the model didn't include it)
-        if not prediction.item_id or prediction.item_id != item.item_id:
-            prediction.item_id = item.item_id
+        if prediction.item_id != item.item_id:
+            match on_different_id:
+                case "raise":
+                    raise MismatchedItemIdsError(
+                        input_item_id=item.item_id,
+                        prediction_item_id=prediction.item_id,
+                    )
+                case "fix":
+                    prediction.item_id = item.item_id
+                case "ignore":
+                    pass
+                case never:
+                    assert_never(never)
 
         return prediction
 
@@ -160,6 +180,7 @@ class HazmatAgent:
         items: Sequence[HazmatInputItem],
         include_item_id: bool = True,
         include_attributes: bool = True,
+        allow_mismatched_predictions: bool = False,
     ) -> list[HazmatPrediction]:
         """Predict hazmat classification for multiple items in batch."""
         prompt = clean_text(
@@ -186,36 +207,11 @@ class HazmatAgent:
         # Ensure we have predictions for all items and IDs are correctly set
         item_ids = {item.item_id for item in items}
         prediction_ids = {pred.item_id for pred in predictions}
-
-        # If we don't have all predictions, fill in missing ones
-        if len(predictions) != len(items) or prediction_ids != item_ids:
-            # Create a mapping of predictions by ID
-            pred_by_id = {
-                pred.item_id: pred for pred in predictions if pred.item_id in item_ids
-            }
-
-            # Fill in missing predictions or fix IDs
-            final_predictions = []
-            for i, item in enumerate(items):
-                if item.item_id in pred_by_id:
-                    final_predictions.append(pred_by_id[item.item_id])
-                elif i < len(predictions):
-                    # Fix the ID for this prediction
-                    pred = predictions[i]
-                    pred.item_id = item.item_id
-                    final_predictions.append(pred)
-                else:
-                    # Create a default prediction if missing
-                    final_predictions.append(
-                        HazmatPrediction(
-                            item_id=item.item_id,
-                            is_hazmat=False,
-                            traits=[],
-                            reason="Unable to classify - no prediction generated",
-                        )
-                    )
-
-            return final_predictions
+        if not allow_mismatched_predictions and prediction_ids != item_ids:
+            raise MismatchedPredictionsError(
+                input_ids=item_ids,
+                prediction_ids=prediction_ids,
+            )
 
         return predictions
 
@@ -251,23 +247,31 @@ class HazmatAgent:
         items: Sequence[HazmatInputItem],
         include_item_id: bool = True,
         include_attributes: bool = True,
+        allow_mismatched_predictions: bool = False,
     ) -> list[HazmatLabeledItem]:
-        """Classify multiple items and return combined input+prediction results."""
+        """Classify multiple items and return combined input+prediction results.
+
+        Args:
+            items: The input dataset items to classify
+            include_item_id: Whether to include item ID in the prompt
+            include_attributes: Whether to include attributes in the prompt
+            allow_mismatched_predictions: Whether to allow mismatched predictions
+        """
         predictions = await self.predict_batch(
             items,
             include_item_id=include_item_id,
             include_attributes=include_attributes,
+            allow_mismatched_predictions=allow_mismatched_predictions,
         )
 
-        if len(predictions) != len(items):
-            raise ValueError(
-                f"Number of predictions ({len(predictions)}) doesn't match number of items ({len(items)})"
-            )
+        inputs_map = {item.item_id: item for item in items}
+        predictions_map = {pred.item_id: pred for pred in predictions}
 
         return [
             HazmatLabeledItem.from_input_and_prediction(
-                input_item=item,
-                prediction=prediction,
+                input_item=inputs_map[item_id],
+                prediction=predictions_map[item_id],
             )
-            for item, prediction in zip(items, predictions, strict=True)
+            for item_id in inputs_map
+            if item_id in predictions_map
         ]

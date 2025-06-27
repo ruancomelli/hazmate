@@ -2,6 +2,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import typer
+from rich import print
 
 from hazmate.input_datasets.input_items import InputDatasetItem
 
@@ -19,7 +20,7 @@ def list_attributes(input_dataset_path: Path):
 
     for name, value_names in sorted(attributes.items()):
         print(
-            f"{name}: {' | '.join(f'{value_name} ({count})' for value_name, count in value_names.most_common(10))}"
+            f"[bold blue]{name}:[/bold blue] {' | '.join(f'[cyan]{value_name}[/cyan] ([green]{count}[/green])' for value_name, count in value_names.most_common(10))}"
         )
 
 
