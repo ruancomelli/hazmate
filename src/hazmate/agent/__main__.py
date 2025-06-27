@@ -9,7 +9,9 @@ from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from hazmate.agent.agent import HazmatAgent
-from hazmate.builder.input_dataset import InputDatasetItem
+from hazmate.agent.labeled_items import HazmatLabeledItem
+from hazmate.agent.predictions import HazmatPrediction
+from hazmate.input_datasets.input_items import HazmatInputItem
 from hazmate.utils.tokens import estimate_token_count
 
 app = typer.Typer()
@@ -34,6 +36,13 @@ async def main(
             help="Path to the output dataset",
         ),
     ] = Path("data", "output_dataset.jsonl"),
+    output_predictions_only: Annotated[
+        bool,
+        typer.Option(
+            "--predictions-only",
+            help="Output predictions only (HazmatPrediction), not the full dataset with input data",
+        ),
+    ] = False,
     batch_size: Annotated[
         int,
         typer.Option(
@@ -82,7 +91,7 @@ async def main(
     )
 
     with input.open() as f:
-        items = [InputDatasetItem.model_validate_json(line) for line in f]
+        items = [HazmatInputItem.model_validate_json(line) for line in f]
 
     items_to_process = list(items)
 
@@ -125,31 +134,27 @@ async def main(
                 )
 
             try:
-                results = await agent.classify_batch(batch, verify_ids=False)
-                processed_ids = {result.item_id for result in results}
-                print(f"    Processed IDs: {processed_ids}")
-                # Re-add items that were not processed
-                items_to_process.extend(
-                    item for item in batch if item.item_id not in processed_ids
-                )
-                for result in results:
-                    f.write(result.model_dump_json() + "\n")
+                if output_predictions_only:
+                    # Output just the predictions (HazmatPrediction)
+                    predictions = await agent.predict_batch(batch)
+                    print(f"    Processed {len(predictions)} predictions")
+                    for prediction in predictions:
+                        f.write(prediction.model_dump_json() + "\n")
+                else:
+                    # Output combined input+prediction data (HazmatLabeledItem)
+                    results = await agent.classify_batch(batch)
+                    processed_ids = {result.item_id for result in results}
+                    print(f"    Processed IDs: {processed_ids}")
+                    # Re-add items that were not processed
+                    items_to_process.extend(
+                        item for item in batch if item.item_id not in processed_ids
+                    )
+                    for result in results:
+                        f.write(result.model_dump_json() + "\n")
             except Exception as e:
                 print(f"   ❌ Error processing batch - trying again: {e}")
                 # Add items back to process list
                 items_to_process.extend(batch)
-
-    # async with TaskGroup() as tg:
-    #     tasks = [
-    #         tg.create_task(agent.classify_batch(batch))
-    #         for batch in itertools.batched(items, batch_size)
-    #     ]
-
-    # with output.open("w") as f:
-    #     for task in tasks:
-    #         results = task.result()
-    #         for result in results:
-    #             f.write(result.model_dump_json() + "\n")
 
 
 if __name__ == "__main__":

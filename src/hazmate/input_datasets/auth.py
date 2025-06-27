@@ -7,7 +7,7 @@ from typing import Any
 import dotenv
 from yarl import URL
 
-from hazmate.builder.auth_config import AuthConfig
+from hazmate.input_datasets.auth_config import AuthConfig
 from hazmate.utils.oauth import OAuth2Session
 
 DOTENV_OAUTH_TOKEN_KEY = "OAUTH_TOKEN"

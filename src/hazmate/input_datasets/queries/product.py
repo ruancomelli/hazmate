@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import ConfigDict, field_validator
 from pydantic import HttpUrl as Url
 
-from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
+from hazmate.input_datasets.queries.base import BASE_URL, ApiResponseModel
 from hazmate.utils.oauth import OAuth2Session
 
 PRODUCT_URL = BASE_URL / "products"

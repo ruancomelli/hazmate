@@ -12,8 +12,9 @@ from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
 from pydantic_ai.models import Model
 
-from hazmate.agent.output_dataset import OutputDatasetItem
-from hazmate.builder.input_dataset import InputDatasetItem
+from hazmate.agent.labeled_items import HazmatLabeledItem
+from hazmate.agent.predictions import HazmatPrediction
+from hazmate.input_datasets.input_items import HazmatInputItem
 from hazmate.utils.text import clean_text
 
 
@@ -21,7 +22,7 @@ from hazmate.utils.text import clean_text
 class HazmatAgent:
     """Agent for hazmat classification."""
 
-    agent: Agent[None, OutputDatasetItem]
+    agent: Agent[None, HazmatPrediction]
 
     @classmethod
     def from_model_and_mcp_servers(
@@ -32,7 +33,7 @@ class HazmatAgent:
         """Create an agent from a model name and MCP servers."""
         agent = Agent(
             model_name,
-            output_type=OutputDatasetItem,
+            output_type=HazmatPrediction,
             system_prompt=cls.get_system_prompt(),
             mcp_servers=mcp_servers,
         )
@@ -74,12 +75,13 @@ class HazmatAgent:
             {output_schema}
 
             Always provide a clear, comprehensive justification for your decision.
+            IMPORTANT: Always include the item_id in your response to maintain traceability.
         """
-        ).format(output_schema=OutputDatasetItem.model_json_schema())
+        ).format(output_schema=HazmatPrediction.model_json_schema())
 
     def get_user_prompt_for_item(
         self,
-        item: InputDatasetItem,
+        item: HazmatInputItem,
         include_item_id: bool = True,
         include_attributes: bool = True,
     ) -> str:
@@ -101,7 +103,7 @@ class HazmatAgent:
 
     def get_user_prompt_for_batch(
         self,
-        items: Sequence[InputDatasetItem],
+        items: Sequence[HazmatInputItem],
         include_item_id: bool = True,
         include_attributes: bool = True,
     ) -> str:
@@ -121,20 +123,21 @@ class HazmatAgent:
             )
         )
 
-    async def classify_item(
+    async def predict_item(
         self,
-        item: InputDatasetItem,
-        verify_ids: bool = True,
+        item: HazmatInputItem,
         include_item_id: bool = True,
         include_attributes: bool = True,
-    ) -> OutputDatasetItem:
-        """Classify a single item for hazmat content.
+    ) -> HazmatPrediction:
+        """Predict hazmat classification for a single item.
 
         Args:
             item: The input dataset item to classify
+            include_item_id: Whether to include item ID in the prompt
+            include_attributes: Whether to include attributes in the prompt
 
         Returns:
-            OutputDatasetItem with classification results
+            HazmatPrediction with classification results
         """
         prompt = self.get_user_prompt_for_item(
             item,
@@ -144,31 +147,27 @@ class HazmatAgent:
 
         # Run the agent
         result = await self.agent.run(prompt)
+        prediction = result.output
 
-        # Ensure the ID matches the input (in case the model didn't use it correctly)
-        output = result.output
+        # Ensure the item_id is set correctly (in case the model didn't include it)
+        if not prediction.item_id or prediction.item_id != item.item_id:
+            prediction.item_id = item.item_id
 
-        if verify_ids and output.item_id != item.item_id:
-            raise ValueError(
-                f"Item ID mismatch: {output.item_id} != {item.item_id}. The model did not use the item ID correctly."
-            )
+        return prediction
 
-        return output
-
-    async def classify_batch(
+    async def predict_batch(
         self,
-        items: Sequence[InputDatasetItem],
-        verify_ids: bool = True,
+        items: Sequence[HazmatInputItem],
         include_item_id: bool = True,
         include_attributes: bool = True,
-    ) -> list[OutputDatasetItem]:
-        """Classify multiple items in batch."""
+    ) -> list[HazmatPrediction]:
+        """Predict hazmat classification for multiple items in batch."""
         prompt = clean_text(
             """Analyze the following product information and classify each item as containing hazardous materials or not.
 
                 {item_data}
 
-                For each input item above, you must provide a classification with the same `item_id` as the corresponding input item.
+                For each input item above, you must provide a classification result with the corresponding item_id.
             """
         ).format(
             item_data="\n".join(
@@ -181,18 +180,94 @@ class HazmatAgent:
         )
 
         # Run the agent
-        result = await self.agent.run(prompt, output_type=list[OutputDatasetItem])
+        result = await self.agent.run(prompt, output_type=list[HazmatPrediction])
+        predictions = result.output
 
-        # Ensure the ID matches the input (in case the model didn't use it correctly)
-        outputs = result.output
+        # Ensure we have predictions for all items and IDs are correctly set
+        item_ids = {item.item_id for item in items}
+        prediction_ids = {pred.item_id for pred in predictions}
 
-        output_ids = sorted(output.item_id for output in outputs)
-        item_ids = sorted(item.item_id for item in items)
-        if verify_ids and output_ids != item_ids:
+        # If we don't have all predictions, fill in missing ones
+        if len(predictions) != len(items) or prediction_ids != item_ids:
+            # Create a mapping of predictions by ID
+            pred_by_id = {
+                pred.item_id: pred for pred in predictions if pred.item_id in item_ids
+            }
+
+            # Fill in missing predictions or fix IDs
+            final_predictions = []
+            for i, item in enumerate(items):
+                if item.item_id in pred_by_id:
+                    final_predictions.append(pred_by_id[item.item_id])
+                elif i < len(predictions):
+                    # Fix the ID for this prediction
+                    pred = predictions[i]
+                    pred.item_id = item.item_id
+                    final_predictions.append(pred)
+                else:
+                    # Create a default prediction if missing
+                    final_predictions.append(
+                        HazmatPrediction(
+                            item_id=item.item_id,
+                            is_hazmat=False,
+                            traits=[],
+                            reason="Unable to classify - no prediction generated",
+                        )
+                    )
+
+            return final_predictions
+
+        return predictions
+
+    async def classify_item(
+        self,
+        item: HazmatInputItem,
+        include_item_id: bool = True,
+        include_attributes: bool = True,
+    ) -> HazmatLabeledItem:
+        """Classify a single item and return combined input+prediction result.
+
+        Args:
+            item: The input dataset item to classify
+            include_item_id: Whether to include item ID in the prompt
+            include_attributes: Whether to include attributes in the prompt
+
+        Returns:
+            HazmatLabeledItem with both input data and classification results
+        """
+        prediction = await self.predict_item(
+            item,
+            include_item_id=include_item_id,
+            include_attributes=include_attributes,
+        )
+
+        return HazmatLabeledItem.from_input_and_prediction(
+            input_item=item,
+            prediction=prediction,
+        )
+
+    async def classify_batch(
+        self,
+        items: Sequence[HazmatInputItem],
+        include_item_id: bool = True,
+        include_attributes: bool = True,
+    ) -> list[HazmatLabeledItem]:
+        """Classify multiple items and return combined input+prediction results."""
+        predictions = await self.predict_batch(
+            items,
+            include_item_id=include_item_id,
+            include_attributes=include_attributes,
+        )
+
+        if len(predictions) != len(items):
             raise ValueError(
-                "Item ID mismatch. The model did not use the item ID correctly. "
-                f"Expected: {item_ids}, "
-                f"Got: {output_ids}"
+                f"Number of predictions ({len(predictions)}) doesn't match number of items ({len(items)})"
             )
 
-        return outputs
+        return [
+            HazmatLabeledItem.from_input_and_prediction(
+                input_item=item,
+                prediction=prediction,
+            )
+            for item, prediction in zip(items, predictions, strict=True)
+        ]

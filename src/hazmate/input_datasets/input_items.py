@@ -3,12 +3,12 @@ from typing import Self
 from pydantic import BaseModel
 from pydantic import HttpUrl as Url
 
-from hazmate.builder.queries.product import (
+from hazmate.input_datasets.queries.product import (
     Attribute,
     MainFeature,
     Product,
 )
-from hazmate.builder.queries.search import SearchResult
+from hazmate.input_datasets.queries.search import SearchResult
 
 
 class InputDatasetAttribute(BaseModel):
@@ -47,8 +47,8 @@ class InputDatasetMainFeature(BaseModel):
         return self.text
 
 
-class InputDatasetItem(BaseModel):
-    """Dataset item containing relevant fields for Hazmat detection.
+class HazmatInputItem(BaseModel):
+    """Dataset item containing relevant fields for Hazmat detection (X only).
 
     This combines information from both SearchResult and Product APIs
     to get the most comprehensive data for hazmat classification.
@@ -76,7 +76,7 @@ class InputDatasetItem(BaseModel):
         search_result: SearchResult,
         product: Product,
     ) -> Self:
-        """Create InputDatasetItem from both SearchResult and Product data.
+        """Create HazmatInputItem from both SearchResult and Product data.
 
         This combines the best information from both APIs:
         - SearchResult provides: keywords, description (detailed)
@@ -161,3 +161,7 @@ class InputDatasetItem(BaseModel):
         content_parts.append("</item>")
 
         return "\n".join(content_parts)
+
+
+# Backward compatibility alias
+InputDatasetItem = HazmatInputItem

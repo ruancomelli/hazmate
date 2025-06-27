@@ -3,7 +3,7 @@ from pathlib import Path
 
 import typer
 
-from hazmate.builder.input_dataset import InputDatasetItem
+from hazmate.input_datasets.input_items import InputDatasetItem
 
 app = typer.Typer()
 

@@ -7,51 +7,22 @@ input dataset that have those attributes (which are certainly hazmat), runs
 the agent on them, and calculates accuracy metrics.
 """
 
-from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Annotated
 
 import dotenv
 import typer
-import yaml
 from asyncer import runnify
 from pydantic_ai.models import Model
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from hazmate.agent.agent import HazmatAgent
-from hazmate.builder.input_dataset import InputDatasetItem
 from hazmate.evaluation.attribute_evaluation_config import AttributeEvaluationConfig
+from hazmate.input_datasets.input_items import InputDatasetItem
+from hazmate.utils.tokens import estimate_token_count
 
 app = typer.Typer()
-
-
-def load_hazmat_config(config_path: Path) -> AttributeEvaluationConfig:
-    """Load hazmat attributes configuration from YAML file."""
-    with config_path.open() as f:
-        config_data = yaml.safe_load(f)
-    return AttributeEvaluationConfig.model_validate(config_data)
-
-
-def is_certainly_hazmat(
-    item: InputDatasetItem, config: AttributeEvaluationConfig
-) -> bool:
-    """Check if an item is certainly hazmat based on its attributes."""
-    for item_attr in item.attributes:
-        for hazmat_attr in config.hazmat_attributes:
-            if (
-                item_attr.name == hazmat_attr.name
-                and item_attr.value_name == hazmat_attr.value
-            ):
-                return True
-    return False
-
-
-def filter_hazmat_items(
-    items: Iterable[InputDatasetItem], config: AttributeEvaluationConfig
-) -> Iterator[InputDatasetItem]:
-    """Filter items that are certainly hazmat based on their attributes."""
-    return (item for item in items if is_certainly_hazmat(item, config))
 
 
 def calculate_accuracy_metrics(results, expected_hazmat_count: int):
@@ -143,9 +114,13 @@ async def main(
     model_name: Annotated[
         str,
         typer.Option(
-            "--model-name",
+            "--model",
             "-m",
-            help="Model name. If you want to use an Ollama model, prefix the model name with 'ollama:', optionally appended with `@<port>`.",
+            help=(
+                "Model name."
+                " If you wish to use an Ollama model, prefix the model name with 'ollama:', optionally appended with `@<port>`."
+                " For example, 'ollama:llama3.1:8b@11435' will use the llama3.1 model served on port 11435. The default port is 11434 for local models."
+            ),
         ),
     ] = "openai:gpt-4o-mini",
     max_items: Annotated[
@@ -162,6 +137,17 @@ async def main(
             help="Show detailed results for each item",
         ),
     ] = False,
+    max_input_tokens: Annotated[
+        int | None,
+        typer.Option(
+            "--max-input-tokens",
+            help=(
+                "Max input tokens."
+                " This is the maximum number of tokens that can be sent to the model, and should be found in each provider's documentation."
+                " Pass a smaller value than the official limit to avoid hitting the context window limit."
+            ),
+        ),
+    ] = None,
 ):
     """Evaluate agent accuracy on certainly hazmat items."""
 
@@ -173,7 +159,7 @@ async def main(
 
     # Load hazmat configuration
     print(f"📋 Loading hazmat configuration from {config}")
-    hazmat_config = load_hazmat_config(config)
+    hazmat_config = AttributeEvaluationConfig.from_yaml_file(config)
     print(f"   Found {len(hazmat_config.hazmat_attributes)} hazmat attribute patterns")
 
     # Load input dataset
@@ -184,7 +170,7 @@ async def main(
 
     # Filter for certainly hazmat items
     print("🔍 Filtering for certainly hazmat items...")
-    hazmat_items = list(filter_hazmat_items(all_items, hazmat_config))
+    hazmat_items = [item for item in all_items if hazmat_config.is_hazmat(item)]
     print(f"   Found {len(hazmat_items)} certainly hazmat items")
 
     if len(hazmat_items) == 0:
@@ -218,8 +204,10 @@ async def main(
         mcp_servers=(),
     )
 
-    # Process items in batches
-    print(f"🔄 Processing {len(hazmat_items)} items in batches of {batch_size}")
+    # Process items in batches with token-aware sizing
+    print(
+        f"🔄 Processing {len(hazmat_items)} items in batches (max size: {batch_size}, max tokens: {max_input_tokens})"
+    )
     items_to_process = list(hazmat_items)
     all_results = []
 
@@ -227,26 +215,71 @@ async def main(
         remaining = len(items_to_process)
         print(f"   Items remaining: {remaining}")
 
-        # Get batch
-        batch_size_actual = min(batch_size, remaining)
-        batch = [items_to_process.pop() for _ in range(batch_size_actual)]
+        # Get initial batch
+        if len(items_to_process) < batch_size:
+            batch = items_to_process
+            items_to_process = []
+        else:
+            batch = [items_to_process.pop() for _ in range(batch_size)]
 
-        # Process batch
-        try:
-            results = await agent.classify_batch(batch, verify_ids=False)
-            processed_ids = {result.item_id for result in results}
-            print(f"   Processed {len(processed_ids)} items")
+        # Check token count and adjust batch size if needed
+        batch_prompt = agent.get_user_prompt_for_batch(
+            batch,
+            include_item_id=False,
+            include_attributes=False,
+        )
 
-            # Re-add items that were not processed
-            items_to_process.extend(
-                item for item in batch if item.item_id not in processed_ids
+        while (
+            max_input_tokens is not None
+            and (
+                estimated_token_count := estimate_token_count(
+                    batch_prompt, "overestimate"
+                )
             )
-            all_results.extend(results)
+            > max_input_tokens
+        ):
+            if len(batch) == 1:
+                print(
+                    f"   ❌ Single item batch exceeds token limit ({estimated_token_count} > {max_input_tokens})"
+                )
+                print(f"      Skipping item: {batch[0].item_id}")
+                break
 
-        except Exception as e:
-            print(f"   ❌ Error processing batch - trying again: {e}")
-            # Add items back to process list
-            items_to_process.extend(batch)
+            print(
+                f"   📏 Estimated token count of {estimated_token_count} exceeds max input tokens of {max_input_tokens}"
+            )
+            print(f"      Reducing batch from {len(batch)} to {len(batch) // 2} items")
+
+            # Put half of the items back for later processing
+            items_to_process.extend(batch[: len(batch) // 2])
+            batch = batch[len(batch) // 2 :]
+
+            # Recalculate prompt for the smaller batch
+            batch_prompt = agent.get_user_prompt_for_batch(
+                batch,
+                include_item_id=False,
+                include_attributes=False,
+            )
+
+        # Process batch if it's valid
+        if batch and len(batch) > 0:
+            try:
+                results = await agent.classify_batch(batch)
+                processed_ids = {result.item_id for result in results}
+                print(
+                    f"   ✅ Processed {len(processed_ids)} items (estimated tokens: {estimate_token_count(batch_prompt, 'overestimate')})"
+                )
+
+                # Re-add items that were not processed
+                items_to_process.extend(
+                    item for item in batch if item.item_id not in processed_ids
+                )
+                all_results.extend(results)
+
+            except Exception as e:
+                print(f"   ❌ Error processing batch - trying again: {e}")
+                # Add items back to process list
+                items_to_process.extend(batch)
 
     # Print detailed results if requested
     print("\n" + "=" * 50)

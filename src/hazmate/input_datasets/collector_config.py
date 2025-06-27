@@ -4,7 +4,7 @@ from typing import Annotated, Self
 import yaml
 from pydantic import BaseModel, Field, model_validator
 
-from hazmate.builder.queries.categories import CategorySimple
+from hazmate.input_datasets.queries.categories import CategorySimple
 
 
 class SubcategoryConfig(BaseModel):

@@ -1,9 +1,9 @@
 from asyncer import runnify
 
-from hazmate.builder.auth import start_oauth_session
-from hazmate.builder.auth_config import AuthConfig
-from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.search import search_products_paginated
+from hazmate.input_datasets.auth import start_oauth_session
+from hazmate.input_datasets.auth_config import AuthConfig
+from hazmate.input_datasets.queries.base import SiteId
+from hazmate.input_datasets.queries.search import search_products_paginated
 from hazmate.utils.async_itertools import aenumerate
 
 

@@ -27,19 +27,19 @@ from rich.progress import (
 )
 from rich.table import Table
 
-from hazmate.builder.auth import start_oauth_session
-from hazmate.builder.auth_config import AuthConfig
-from hazmate.builder.collector_config import CollectorConfig
-from hazmate.builder.input_dataset import InputDatasetItem
-from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.categories import get_categories
-from hazmate.builder.queries.category import CategoryDetail, ChildCategory, get_category
-from hazmate.builder.queries.category_attributes import (
+from hazmate.input_datasets.auth import start_oauth_session
+from hazmate.input_datasets.auth_config import AuthConfig
+from hazmate.input_datasets.collector_config import CollectorConfig
+from hazmate.input_datasets.input_items import InputDatasetItem
+from hazmate.input_datasets.queries.base import SiteId
+from hazmate.input_datasets.queries.categories import get_categories
+from hazmate.input_datasets.queries.category import CategoryDetail, ChildCategory, get_category
+from hazmate.input_datasets.queries.category_attributes import (
     CategoryAttribute,
     get_category_attributes,
 )
-from hazmate.builder.queries.product import Product, get_product
-from hazmate.builder.queries.search import search_products_paginated
+from hazmate.input_datasets.queries.product import Product, get_product
+from hazmate.input_datasets.queries.search import search_products_paginated
 from hazmate.utils.async_itertools import ainterleave, ainterleave_queued, aislice
 from hazmate.utils.oauth import OAuth2Session
 

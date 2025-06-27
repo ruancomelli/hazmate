@@ -1,10 +1,19 @@
+from functools import cache
+from pathlib import Path
+from typing import Self
+
+import yaml
 from pydantic import BaseModel, ConfigDict
+
+from hazmate.input_datasets.input_items import HazmatInputItem
 
 
 class HazmatAttribute(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     name: str
     value: str
-    tags: list[str] = []
+    tags: tuple[str, ...] = ()
 
 
 class AttributeEvaluationConfig(BaseModel):
@@ -34,4 +43,27 @@ class AttributeEvaluationConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    hazmat_attributes: list[HazmatAttribute]
+    hazmat_attributes: tuple[HazmatAttribute, ...]
+
+    @classmethod
+    def from_yaml_file(cls, config_path: Path) -> Self:
+        """Load hazmat attributes configuration from YAML file."""
+        with config_path.open() as f:
+            config_data = yaml.safe_load(f)
+        return cls.model_validate(config_data)
+
+    def is_hazmat(self, item: HazmatInputItem) -> bool:
+        """Check if an item is hazmat based on its attributes."""
+        hazmat_attribute_pairs = self._generate_hazmat_attribute_pairs()
+        return any(
+            (item_attr.name, item_attr.value_name) in hazmat_attribute_pairs
+            for item_attr in item.attributes
+        )
+
+    @cache
+    def _generate_hazmat_attribute_pairs(self) -> frozenset[tuple[str, str]]:
+        """Generate a set of hazmat attribute pairs."""
+        return frozenset(
+            (hazmat_attr.name, hazmat_attr.value)
+            for hazmat_attr in self.hazmat_attributes
+        )

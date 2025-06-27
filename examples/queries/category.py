@@ -4,9 +4,9 @@ from pprint import pprint
 
 from asyncer import runnify
 
-from hazmate.builder.auth import start_oauth_session
-from hazmate.builder.auth_config import AuthConfig
-from hazmate.builder.queries.category import get_category
+from hazmate.input_datasets.auth import start_oauth_session
+from hazmate.input_datasets.auth_config import AuthConfig
+from hazmate.input_datasets.queries.category import get_category
 
 
 @runnify

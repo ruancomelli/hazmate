@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import ConfigDict
 
-from hazmate.builder.queries.base import BASE_URL, ApiResponseModel
+from hazmate.input_datasets.queries.base import BASE_URL, ApiResponseModel
 from hazmate.utils.frozendict import FrozenDict
 from hazmate.utils.oauth import OAuth2Session
 

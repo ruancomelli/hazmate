@@ -2,12 +2,12 @@
 
 from rich.progress import Progress
 
-from hazmate.builder.auth import start_oauth_session
-from hazmate.builder.auth_config import AuthConfig
-from hazmate.builder.queries.base import SiteId
-from hazmate.builder.queries.categories import get_categories
-from hazmate.builder.queries.category import get_category
-from hazmate.builder.queries.category_attributes import get_category_attributes
+from hazmate.input_datasets.auth import start_oauth_session
+from hazmate.input_datasets.auth_config import AuthConfig
+from hazmate.input_datasets.queries.base import SiteId
+from hazmate.input_datasets.queries.categories import get_categories
+from hazmate.input_datasets.queries.category import get_category
+from hazmate.input_datasets.queries.category_attributes import get_category_attributes
 
 
 def main():

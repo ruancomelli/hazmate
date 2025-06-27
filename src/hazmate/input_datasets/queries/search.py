@@ -5,8 +5,8 @@ from typing import Any
 from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
 
-from hazmate.builder.queries.base import BASE_URL, ApiResponseModel, SiteId
-from hazmate.builder.queries.product import Attribute, MainFeature
+from hazmate.input_datasets.queries.base import BASE_URL, ApiResponseModel, SiteId
+from hazmate.input_datasets.queries.product import Attribute, MainFeature
 from hazmate.utils.oauth import OAuth2Session
 
 SEARCH_URL = BASE_URL / "products" / "search"
