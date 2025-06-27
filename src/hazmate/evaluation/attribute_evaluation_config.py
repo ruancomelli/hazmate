@@ -34,4 +34,4 @@ class AttributeEvaluationConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    hazmat_attributes: list[HazmatAttribute] = []
+    hazmat_attributes: list[HazmatAttribute]

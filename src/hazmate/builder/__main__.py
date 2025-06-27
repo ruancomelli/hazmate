@@ -4,7 +4,6 @@ This script is used to build the hazmate dataset.
 """
 
 import asyncio
-import csv
 import enum
 import json
 from collections import Counter
@@ -177,7 +176,7 @@ def _calculate_and_display_statistics(
         or (item.short_description and item.short_description.strip())
     )
 
-    console.print(f"[bold]Content Analysis:[/bold]")
+    console.print("[bold]Content Analysis:[/bold]")
     console.print(
         f"Items with description or short_description: [green]{items_with_description:,}[/green] ([yellow]{(items_with_description / len(items) * 100):.1f}%[/yellow])"
     )
@@ -236,7 +235,7 @@ def _calculate_and_display_statistics(
     items_with_attributes = sum(1 for item in items if item.attributes)
     avg_attributes_per_item = total_attributes / len(items) if items else 0
 
-    console.print(f"\n[bold]Structured Data Analysis:[/bold]")
+    console.print("\n[bold]Structured Data Analysis:[/bold]")
     console.print(
         f"Items with attributes: [green]{items_with_attributes:,}[/green] ([yellow]{(items_with_attributes / len(items) * 100):.1f}%[/yellow])"
     )
@@ -266,7 +265,7 @@ def _calculate_and_display_statistics(
     family_counts = Counter(item.family_name for item in items)
     top_families = family_counts.most_common(10)
 
-    console.print(f"\n[bold]Top 10 Product Families:[/bold]")
+    console.print("\n[bold]Top 10 Product Families:[/bold]")
     family_table = Table(show_header=True, header_style="bold magenta")
     family_table.add_column("Family Name", style="cyan")
     family_table.add_column("Count", justify="right", style="green")
@@ -306,7 +305,7 @@ def _calculate_and_display_statistics(
 
     avg_text_length = sum(text_lengths) / len(text_lengths) if text_lengths else 0
 
-    console.print(f"\n[bold]Text Content Summary:[/bold]")
+    console.print("\n[bold]Text Content Summary:[/bold]")
     console.print(
         f"Items with any text content: [green]{items_with_any_text:,}[/green] ([yellow]{(items_with_any_text / len(items) * 100):.1f}%[/yellow])"
     )

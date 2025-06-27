@@ -1,4 +1,3 @@
-from asyncer import asyncify
 from pydantic import ConfigDict
 
 from hazmate.builder.queries.base import BASE_URL, ApiResponseModel, SiteId

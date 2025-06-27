@@ -2,7 +2,6 @@
 
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
 

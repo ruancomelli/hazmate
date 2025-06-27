@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from asyncer import asyncify
 from pydantic import ConfigDict, field_validator
 from pydantic import HttpUrl as Url
 

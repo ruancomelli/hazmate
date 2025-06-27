@@ -1,8 +1,7 @@
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator
 from datetime import datetime
 from typing import Any
 
-from asyncer import asyncify
 from pydantic import ConfigDict
 from pydantic import HttpUrl as Url
 

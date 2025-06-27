@@ -117,9 +117,16 @@ class InputDatasetItem(BaseModel):
             main_features=main_features,
         )
 
-    def get_all_text_content_as_xml(self) -> str:
+    def get_all_text_content_as_xml(
+        self,
+        include_item_id: bool = True,
+        include_attributes: bool = True,
+    ) -> str:
         """Get all textual content concatenated for analysis."""
         content_parts = ["<item>"]
+
+        if include_item_id:
+            content_parts.append(f"<item_id>{self.item_id}</item_id>")
 
         if self.name:
             content_parts.append(f"<name>{self.name}</name>")
@@ -140,15 +147,16 @@ class InputDatasetItem(BaseModel):
         if self.keywords:
             content_parts.append(f"<keywords>{self.keywords}</keywords>")
 
-        # Add attributes
-        for attr in self.attributes:
-            if attr_text := attr.to_text().strip():
-                content_parts.append(f"<attribute>{attr_text}</attribute>")
+        if include_attributes:
+            # Add attributes
+            for attr in self.attributes:
+                if attr_text := attr.to_text().strip():
+                    content_parts.append(f"<attribute>{attr_text}</attribute>")
 
-        # Add main features
-        for feature in self.main_features:
-            if feature_text := feature.to_text().strip():
-                content_parts.append(f"<feature>{feature_text}</feature>")
+            # Add main features
+            for feature in self.main_features:
+                if feature_text := feature.to_text().strip():
+                    content_parts.append(f"<feature>{feature_text}</feature>")
 
         content_parts.append("</item>")
 
