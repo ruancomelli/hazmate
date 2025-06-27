@@ -1,0 +1,15 @@
+hazmat_attributes:
+  - name: É inflamável
+    value: Sim
+    tags:
+      - INFLAMABLE
+
+  - name: Com mercúrio
+    value: Sim
+    tags:
+      - MERCURY
+
+  - name: Tipo de termômetro
+    value: De mercúrio
+    tags:
+      - MERCURY
