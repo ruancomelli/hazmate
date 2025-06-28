@@ -42,9 +42,10 @@ def calculate_accuracy_metrics(results, expected_hazmat_count: int):
         "total_items": total_processed,
         "expected_hazmat": expected_hazmat_count,
         "correctly_identified_hazmat": correctly_identified_hazmat,
+        "correctly_identified_hazmat_percentage": accuracy,
         "false_negatives": false_negatives,
+        "false_negatives_percentage": false_negatives / total_processed,
         "accuracy": accuracy,
-        "accuracy_percentage": accuracy * 100,
     }
 
     return metrics
@@ -139,16 +140,9 @@ def main(
         typer.Option(
             "--predictions",
             "-p",
-            help="Path to the predictions dataset (output of __main__.py)",
+            help="Path to the predictions dataset (output of hazmate.agent:main).",
         ),
     ],
-    max_items: Annotated[
-        int,
-        typer.Option(
-            "--max-items",
-            help="Maximum number of hazmat items to evaluate (0 for all)",
-        ),
-    ] = 0,
     detailed: Annotated[
         bool,
         typer.Option(
@@ -173,11 +167,6 @@ def main(
     if len(hazmat_items) == 0:
         print("[red]❌ No ground-truth hazmat items found! Check the file.[/red]")
         return
-
-    # Limit items if requested
-    if max_items > 0 and len(hazmat_items) > max_items:
-        hazmat_items = hazmat_items[:max_items]
-        logger.info(f"Limited to {max_items} items for evaluation")
 
     # Load predictions
     print(f"[blue]📦 Loading predictions from[/blue] {predictions}")
@@ -231,10 +220,12 @@ def main(
     print(f"[cyan]Items with predictions:[/cyan] {metrics['total_items']}")
     print(f"[cyan]Items without predictions:[/cyan] {len(missing_predictions)}")
     print(
-        f"[cyan]Correctly identified as hazmat:[/cyan] {metrics['correctly_identified_hazmat']}"
+        f"[cyan]Correctly identified as hazmat:[/cyan] {metrics['correctly_identified_hazmat']} ({metrics['correctly_identified_hazmat_percentage']:.1%})"
     )
-    print(f"[cyan]False negatives (missed hazmat):[/cyan] {metrics['false_negatives']}")
-    print(f"[bold green]Accuracy:[/bold green] {metrics['accuracy_percentage']:.1f}%")
+    print(
+        f"[cyan]False negatives (missed hazmat):[/cyan] {metrics['false_negatives']} ({metrics['false_negatives_percentage']:.1%})"
+    )
+    print(f"[bold green]Accuracy:[/bold green] {metrics['accuracy']:.1%}")
 
     if missing_predictions:
         logger.warning(
