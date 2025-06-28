@@ -4,10 +4,10 @@
 
 ![Project Hero](assets/hero.png)
 
-**Candidate**: Ruan Cardoso Comelli  
-**Position**: GenAI Software Engineer - IT Hazmat Team  
-**Repository**: https://github.com/ruancomelli/hazmate 
-**Predictions**: https://drive.google.com/file/d/1d7pFJNltG0GuLHyaE-UGXxPfXY7zwdKQ/view?usp=sharing
+**Candidate**: Ruan Cardoso Comelli<br/>
+**Position**: GenAI Software Engineer - IT Hazmat Team<br/>
+**Repository**: https://github.com/ruancomelli/hazmate<br/>
+**Predictions**: https://drive.google.com/file/d/1d7pFJNltG0GuLHyaE-UGXxPfXY7zwdKQ/view?usp=sharing<br/>
 **Date**: 2025-06-27
 
 ---
@@ -21,11 +21,8 @@ I built a classification system using Large Language Models (LLMs) optionally en
 **Accomplishments:**
 
 - Successfully collected 100,000 real products from MercadoLibre's API, covering diverse categories that might contain hazmat items. This required overcoming significant technical challenges including OAuth token expiration and API endpoint limitations.
-
 - Implemented a RAG-enhanced classification system that combines the generative capabilities of LLMs with a knowledge base of human-labeled examples.
-
 - Achieved 97.3% accuracy on definitive hazmat items (identified through product attributes) without RAG.
-
 - Developed an evaluation strategy using MercadoLibre's own product attributes as ground truth, allowing reliable assessment of model performance without time-consuming manual labeling.
 
 ---
@@ -114,7 +111,7 @@ Initial attempts to use category-filtered search endpoints (`/site/$SITE_ID/item
 
 The solution was to use the accessible `/products/search` endpoint, which requires query-based rather than category-based filtering. This necessitated creating targeted search queries to simulate category-specific collection, leading to the development of the [`hazmat-collector-config.yaml`](https://github.com/ruancomelli/hazmate/blob/main/hazmat-collector-config.yaml) configuration file.
 
-I used ChatGPT (https://chatgpt.com/share/685c82d0-05f0-8009-88d4-76a4105c4702) to generate targeted search queries that would capture products from specific categories. For example, instead of filtering by "automotive accessories," I created queries like "óleo automotivo," "fluido de freio," "bateria carro," etc. This approach required Portuguese search terms that would naturally surface products from each target category.
+I used [ChatGPT](https://chatgpt.com/share/685c82d0-05f0-8009-88d4-76a4105c4702) to generate targeted search queries that would capture products from specific categories. For example, instead of filtering by "automotive accessories," I created queries like "óleo automotivo," "fluido de freio," "bateria carro," etc. This approach required Portuguese search terms that would naturally surface products from each target category.
 
 **Category selection strategy**
 
@@ -421,11 +418,14 @@ One technique to mitigate hallucination is to require the classification agent t
 
 ## Conclusion
 
-This solution demonstrates a production-ready hazmat detection system that successfully addresses MercadoLibre's business requirements. The combination of advanced AI techniques (LLMs + RAG), robust engineering practices, and comprehensive evaluation methodology creates a system capable of operating at e-commerce scale while maintaining the safety and explainability requirements critical for hazmat classification.
+This technical challenge demonstrates a working proof-of-concept for hazmat detection that successfully addresses the key requirements outlined by MercadoLibre. While not production-ready, the solution showcases a solid foundation that could be evolved into a production system with additional engineering effort.
 
-**Key Innovations:**
+**Key Accomplishments:**
 
-- **Dual-API Data Strategy** for comprehensive product information
-- **RAG-Enhanced Classification** for improved accuracy and consistency
-- **Attribute-Based Ground Truth** for reliable evaluation
-- **Production-Ready Architecture** with monitoring and alerting
+- Successfully collected 100,000 real products from MercadoLibre's API, overcoming significant technical challenges including OAuth limitations and endpoint restrictions
+- Built a functional LLM-based classification system achieving 97.3% accuracy on definitive hazmat cases without fine-tuning
+- Developed a simple but effective evaluation methodology using product attributes as ground truth, enabling reliable performance assessment without manual labeling
+- Implemented RAG architecture to enhance classification with domain-specific examples
+- Created comprehensive documentation of the approach, challenges, and architectural decisions
+
+While this implementation serves as a strong proof-of-concept, transitioning to production would require additional work including robust monitoring, error handling, scalability optimizations, and comprehensive testing. The foundation established here provides a clear path forward for building a production-grade hazmat detection system.
