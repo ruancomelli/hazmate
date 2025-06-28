@@ -2,8 +2,6 @@
 
 ## Hazmat Detection System - Technical Report
 
-![Project Hero](assets/hero.png)
-
 **Candidate**: Ruan Cardoso Comelli<br/>
 **Position**: GenAI Software Engineer - IT Hazmat Team<br/>
 **Repository**: https://github.com/ruancomelli/hazmate<br/>
@@ -85,7 +83,8 @@ During the initial analysis, it became evident that no single API endpoint provi
 /sites/{site_id}/categories           # All categories in the site
 /categories/{category_id}             # Category structure
 /categories/{category_id}/attributes  # Attribute definitions
-/products/search                      # Product discovery (primary functional endpoint)
+/products/search                      # Product discovery
+								      # (primary functional endpoint)
 /products/{product_id}                # Detailed product information
 ```
 
@@ -101,7 +100,7 @@ I developed `list_all_subcategories.py` to systematically explore MercadoLibre's
 
 **API endpoint limitations**
 
-Initial attempts to use category-filtered search endpoints (`/site/$SITE_ID/items/search?category=$CATEGORY` and `/site/$SITE_ID/items/search?q=$QUERY`) consistently returned 403 Forbidden errors. After extensive testing with different authentication approaches and request parameters, I concluded that these endpoints were likely unavailable with the current application permissions, and a different approach was needed.
+Initial attempts to use category-filtered search endpoints (`/site/$SITE_ID/items/search?q=$QUERY` and `/site/$SITE_ID/items/search?category=$CATEGORY`) consistently returned 403 Forbidden errors. After extensive testing with different authentication approaches and request parameters, I concluded that these endpoints were likely unavailable with the current application permissions, and a different approach was needed.
 
 **Alternative search strategy**
 
