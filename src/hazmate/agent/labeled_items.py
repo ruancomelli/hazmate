@@ -1,3 +1,5 @@
+"""This module contains the HazmatLabeledItem class, which is used to combine the input data and prediction result in a single object."""
+
 from typing import Annotated, Self
 
 from pydantic import BaseModel, Field
@@ -59,9 +61,7 @@ class HazmatLabeledItem(BaseModel):
     ) -> Self:
         """Create a HazmatLabeledItem from input data and prediction.
 
-        Args:
-            input_item: HazmatInputItem with the original data
-            prediction: HazmatPrediction with the classification results
+        Raises a `MismatchedItemIdsError` if the item IDs do not match.
         """
         # Verify IDs match
         if input_item.item_id != prediction.item_id:

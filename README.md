@@ -44,7 +44,7 @@ I also ended up using a local server to receive the access token and refresh tok
 
 #### Interacting with the API
 
-To build the dataset, I will send requests to several Meli API endpoints:
+To build the dataset, I will send requests to several MercadoLibre API endpoints:
 
 - `https://api.mercadolibre.com/products/search`
 - `https://api.mercadolibre.com/products/$PRODUCT_ID`

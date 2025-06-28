@@ -69,7 +69,7 @@ async def search_products(
     limit: int | None = None,
     offset: int | None = None,
 ) -> SearchResponse:
-    """Search for products in Meli API."""
+    """Search for products in MercadoLibre API."""
     # Example of https://api.mercadolibre.com/products/search
     #     {'keywords': 'dinossauro',
     #     'paging': {'limit': 2, 'offset': 0, 'total': 2},
@@ -208,7 +208,7 @@ async def search_products_paginated(
     query: str | None = None,
     limit: int | None = None,
 ) -> AsyncIterator[SearchResponse]:
-    """Search for products in Meli API, paginated.
+    """Search for products in MercadoLibre API, paginated.
 
     Args:
         session: The OAuth2 session to use.

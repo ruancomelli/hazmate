@@ -1,4 +1,4 @@
-"""Output dataset models for hazmat classification results."""
+"""A prediction result from the hazmat classification agent."""
 
 from typing import Annotated
 
@@ -8,7 +8,7 @@ from hazmate.agent.hazmat_traits import HazmatTrait
 
 
 class HazmatPrediction(BaseModel):
-    """Prediction result from hazmat classification agent (Y only).
+    """Prediction result from hazmat classification agent.
 
     This contains only the prediction/classification results,
     with the item_id to allow pairing with inputs.

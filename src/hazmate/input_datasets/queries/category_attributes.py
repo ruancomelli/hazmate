@@ -40,7 +40,7 @@ class CategoryAttribute(ApiResponseModel):
 async def get_category_attributes(
     session: OAuth2Session, category_id: str
 ) -> list[CategoryAttribute]:
-    """Get attribute definitions for a specific category from Meli API.
+    """Get attribute definitions for a specific category from MercadoLibre API.
 
     Args:
         session: The OAuth2 session to use.

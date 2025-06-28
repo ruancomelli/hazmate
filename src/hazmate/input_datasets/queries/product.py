@@ -91,7 +91,7 @@ class Product(ApiResponseModel):
 
 
 async def get_product(session: OAuth2Session, product_id: str) -> Product:
-    """Query a specific product from Meli API."""
+    """Query a specific product from MercadoLibre API."""
     # Example of https://api.mercadolibre.com/products/$PRODUCT_ID
     #     {'attributes': [{'id': 'BRAND',
     #                     'name': 'Marca',

@@ -88,7 +88,7 @@ class CategoryDetail(ApiResponseModel):
 
 
 async def get_category(session: OAuth2Session, category_id: str) -> CategoryDetail:
-    """Get detailed information for a specific category from Meli API.
+    """Get detailed information for a specific category from MercadoLibre API.
 
     Args:
         session: The OAuth2 session to use.

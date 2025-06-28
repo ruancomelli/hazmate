@@ -14,7 +14,7 @@ class CategorySimple(ApiResponseModel):
 async def get_categories(
     session: OAuth2Session, site_id: SiteId
 ) -> list[CategorySimple]:
-    """Get all categories for a specific site from Meli API.
+    """Get all categories for a specific site from MercadoLibre API.
 
     Args:
         session: The OAuth2 session to use.
