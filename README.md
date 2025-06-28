@@ -1,121 +1,169 @@
-# Take-Home Test for GenAI Positions - IT Hazmat Team
+# Hazmat Detection System - MercadoLibre GenAI Challenge
 
 ![Project Hero](assets/hero.png)
 
-This project is a take-home test for the GenAI positions at IT Hazmat.
+<div align="center">
+  <h1>Hazmate</h1>
+  <p>Your AI-powered hazmat detection teammate.</p>
 
-The solution repository is available at https://github.com/ruancomelli/hazmate.
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<!-- TODO: make this repo public! -->
+</div>
 
-<!-- TODO: extend this section -->
+**🎯 Take-Home Challenge Solution for GenAI Software Engineer Position**  
+**📋 Full Technical Report**: [REPORT.md](REPORT.md)  
+**🔗 Predictions**: [Google Drive CSV](https://drive.google.com/file/d/1d7pFJNltG0GuLHyaE-UGXxPfXY7zwdKQ/view?usp=sharing)
 
-<!-- TODO: create more sections for each part of the project -->
+---
 
-## Project Structure
+## 🚀 Challenge Overview
 
-## Execution
+MercadoLibre faces a critical logistics challenge: **not all products can be shipped through their standard network**. Items containing hazardous materials (Hazmat) require special handling, but this information isn't structured in their systems. The challenge was to build an AI system that can:
 
-### Authentication and Authorization
+- **Classify products as Hazmat or non-Hazmat** from unstructured data (titles, descriptions, attributes)
+- **Provide clear explanations** for each classification decision
+- **Design a production-ready architecture** that can scale to millions of products
+- **Demonstrate accuracy** on real MercadoLibre product data
 
-For authentication, I used the OAuth 2.0 flow.
+## 🏆 Key Achievements
 
-- step 1: start the redirect server with `uv run -m hazmate.redirect_server`
-- step 2: expose the redirect server to the internet with `./scripts/start_ngrok.sh`. I've set up a free ngrok domain for this project, so the redirect URL is the same for everyone.
-- step 3: set the `REDIRECT_URL` environment variable in the `.env` file as `REDIRECT_URL = "https://wealthy-optionally-anemone.ngrok-free.app/callback"`
+✅ **100,000 Real Products Collected** - Successfully gathered diverse product data from MercadoLibre's API  
+✅ **97.3% Accuracy on Hazmat Items** - Achieved high precision on definitive hazmat items without fine-tuning  
+✅ **Smart Evaluation Strategy** - Used MercadoLibre's own attributes as ground truth labels  
+✅ **RAG Enhancement** - Implemented knowledge base for domain-specific examples  
+✅ **Complete Documentation** - Professional technical report with architecture diagrams
 
-The OAuth flow starts automatically when the application is run.
+## 🛠️ Technical Stack
 
-## Devlog
+- **🧠 AI Models**: Model-agnostic, though tested with Gemini 2.5 Flash Lite
+- **🔍 RAG**: ChromaDB + LangChain for knowledge base retrieval
+- **🔐 Authentication**: OAuth 2.0 with automatic token refresh
+- **⚡ Framework**: PydanticAI for structured outputs, FastAPI-style async
+- **📊 Data Processing**: Async batch processing with parallel execution
+- **🎨 CLI**: Rich terminal UI with progress tracking and tables
 
-In this section, I will describe the decisions I made and the process I went through to build the project, including the difficulties I faced and how I overcame or worked around them.
+## 🚀 Quick Start
 
-### Data Collection
+### Prerequisites
 
-To build the dataset of potential hazmat items, I decided to use MercadoLibre's API.
+- **Python 3.13+** (managed with [uv](https://docs.astral.sh/uv/))
+- **API Keys**: Google, OpenAI, or Anthropic (depending on model choice)
+- **MercadoLibre App**: Client ID and secret for data collection
 
-<!-- TODO: explain why I preferred the API over scraping; namely: more reliable, allows me to send queries, less complicated, less chance of getting blocked, simpler to implement, etc. -->
+### Installation
 
-#### Authorization
+```bash
+# Clone the repository
+git clone https://github.com/ruancomelli/hazmate.git
+cd hazmate
 
-This was honestly the single most time-consuming part of the project. I spent a lot of time trying to figure out how to set up the redirect URL to receive the authorization code and manage the authorization code, access tokens, and refresh tokens.
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-I also ended up using a local server to receive the access token and refresh token.
+# Verify uv installation
+uv --version
+```
 
-#### Interacting with the API
+### Environment Setup
 
-To build the dataset, I will send requests to several MercadoLibre API endpoints:
+```bash
+# Copy environment template
+cp .env.example .env
 
-- `https://api.mercadolibre.com/products/search`
-- `https://api.mercadolibre.com/products/$PRODUCT_ID`
-- `https://api.mercadolibre.com/sites/$SITE_ID/categories`
-- `https://api.mercadolibre.com/categories/$CATEGORY_ID`
-- `https://api.mercadolibre.com/categories/$CATEGORY_ID/attributes`
+# Edit .env with your API keys
+# Required for data collection:
+CLIENT_ID=your_mercadolibre_client_id
+CLIENT_SECRET=your_mercadolibre_client_secret
+REDIRECT_URL=https://wealthy-optionally-anemone.ngrok-free.app/callback
 
-In order to build type-safe queries, I created a `pydantic` model for each endpoint by first sending sample queries to the API, saving the responses to a file, and then asking Cursor to create the relevant Pydantic models. See the conversation in [`cursor-chats/cursor_create_pydantic_model_for_mercad.md`](cursor-chats/cursor_create_pydantic_model_for_mercad.md).
+# Required for classification (choose one or more):
+GOOGLE_API_KEY=your_google_api_key
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+```
 
-See [`examples/queries`](examples/queries) for examples of how to use the type-safe queries.
+### OAuth Setup (for Data Collection)
 
-#### Building the dataset
+```bash
+# Terminal 1: Start the OAuth redirect server
+uv run -m hazmate.redirect_server
 
-<!-- Relevant chat: https://chatgpt.com/share/685c82d0-05f0-8009-88d4-76a4105c4702 -->
+# Terminal 2: Expose server with ngrok
+bash scripts/start_ngrok.sh
+```
 
-The dataset construction process involves several key decisions and optimizations:
+## 🎯 Usage Examples
 
-**API Data Sources Comparison:**
-After analyzing both the `/products/search` and `/products/{id}` endpoints, I discovered that neither API response is strictly richer than the other - they contain complementary information:
+### 1. **Quick Classification Demo**
 
-- **SearchResult** provides: `keywords` (search terms) and `description` (basic product info)
-- **Product** provides: `short_description` (detailed product description), `family_name`, and `permalink`
+```bash
+# Basic hazmat classification
+uv run examples/agents/agent.py basic-usage -m "google-gla:gemini-2.5-flash-lite-preview-06-17"
 
-**Dataset Design Decisions:**
+# RAG-enhanced classification
+uv run examples/agents/agent.py rag-usage -m "openai:gpt-4o-mini"
 
-1. **Dual API Strategy**: Instead of using just one API endpoint, the final dataset combines information from both by making additional Product API calls for the items found through search.
+# Compare both approaches
+uv run examples/agents/agent.py compare-agents -m "google-gla:gemini-2.5-flash-lite-preview-06-17"
+```
 
-2. **Focus on Text Content**: For hazmat detection, textual information is most valuable. The combined approach ensures we capture:
+### 2. **Data Collection**
 
-   - Search keywords that might indicate hazardous materials
-   - Basic descriptions from search results
-   - Rich, detailed product descriptions from the product API
-   - Structured attributes and main features
+```bash
+# Collect 1,000 balanced samples (good for testing)
+uv run -m hazmate.input_datasets \
+    --target-size 1000 \
+    --goal balance \
+    --output-name "sample_dataset.jsonl"
 
-3. **Removed Image Analysis**: Initially considered including product images, but decided to focus on text-based classification for this project. This simplifies the model architecture and reduces complexity.
+# Collect 100,000 items (full dataset)
+uv run -m hazmate.input_datasets \
+    --target-size 100_000 \
+    --goal speed \
+    --output-name "full_dataset.jsonl"
+```
 
-4. **Required vs Optional Fields**: Made fields like `permalink` and `family_name` required since they're always available in the Product API and provide valuable context for hazmat detection.
+### 3. **Batch Classification**
 
-**Data Structure**: The final `InputDatasetItem` model includes:
+```bash
+# Classify products with basic LLM
+uv run -m hazmate.agent \
+    -m "google-gla:gemini-2.5-flash-lite-preview-06-17" \
+    -i "data/inputs/sample_dataset.jsonl" \
+    -o "data/predictions/sample_predictions.jsonl" \
+    --batch-size 50 \
+    --parallel-batches 5
 
-- Product identification (ID, name, domain, family name, permalink)
-- Textual content (description, short description, keywords)
-- Structured attributes (materials, safety info, etc.)
-- Main product features
+# Convert to CSV format
+uv run scripts/convert_jsonl_to_csv.py \
+    "data/predictions/sample_predictions.jsonl" \
+    "data/predictions/sample_predictions.csv"
+```
 
-This approach ensures we have the richest possible dataset for training hazmat classification models while maintaining data quality and consistency.
+### 4. **Evaluation**
 
-<!--
-TODO:
+```bash
+# Generate ground truth from product attributes
+uv run scripts/filter_hazmat_items.py \
+    -i "data/inputs/sample_dataset.jsonl" \
+    -o "data/ground_truth/hazmat_items.jsonl"
 
-### Inference
+# Evaluate predictions accuracy
+uv run scripts/evaluate_on_hazmat.py \
+    -g "data/ground_truth/hazmat_items.jsonl" \
+    -p "data/predictions/sample_predictions.jsonl" \
+    --detailed
+```
 
-### Evaluation
+## 📚 Documentation
 
-One idea: items have attributes that can give us 100% accuracy - like "is flammable: true". This is good because it allows us to build an evaluation set.
+- **[📋 Technical Report](REPORT.md)** - Complete methodology, architecture, and results
+- **[🎯 Examples](examples/)** - Hands-on demonstrations of all features
+- **[🔧 Scripts](scripts/)** - Utility tools for data processing and evaluation
 
-### Deployment
+---
 
-### Updating
--->
+**Built with ❤️ and ☕ by [Ruan Comelli](https://github.com/ruancomelli) for MercadoLibre's GenAI Team**
 
-<!-- TODO: write the following in a readable and structured way:
-
-I am not much worried about catastrophic forgetting because:
-
-- I am not fine-tuning models
-- I am not chaining messages indefinitely (as would happen in a chatbot)
-- ...?
-
- -->
-
-## Feedback
-
-<!-- TODO: give them some feedback on the challenge? -->
+_(This README was generated by AI and will be updated manually)_
