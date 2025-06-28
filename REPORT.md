@@ -69,11 +69,11 @@ Example scripts are available in the [`examples/`](https://github.com/ruancomell
 
 #### Data collection strategy: MercadoLibre's API
 
-I chose to work with MercadoLibre's public API rather than web scraping for several practical reasons: First, it's much more reliable - APIs give you structured data in a predictable format, whereas web scraping is fragile and breaks whenever the website changes. Second, I'm less likely to get blocked or rate-limited when using official endpoints. Third, this is closer to what a production system would receive as input: well-structured data.
+I chose to work with MercadoLibre's public API rather than using web scraping for several practical reasons: First, it's much more reliable - APIs give you structured data in a predictable format, whereas web scraping is fragile and breaks whenever the website changes. Second, I'm less likely to get blocked or rate-limited when using official endpoints. Third, this is closer to what a production system would receive as input: well-structured data.
 
 #### OAuth 2.0 authentication
 
-To access the API, I needed to authenticate using OAuth 2.0. The [API documentation](https://developers.mercadolivre.com.br/pt_br/autenticacao-e-autorizacao) provided a guide for the authentication process, but I needed to implement a custom solution to handle the token expiration. Due to the expiration time of 5 minutes of each access token, the data collection stage could not be reliably executed in a single run.
+To access the API, I needed to authenticate using OAuth 2.0. The [API documentation](https://developers.mercadolivre.com.br/pt_br/autenticacao-e-autorizacao) provided a guide for the authentication process, but I needed to implement a custom solution to handle the token expiration. Due to the fact that access tokens expire in 5 minutes, the data collection stage could not be reliably executed in a single run.
 
 To solve this, I obtained a static domain from ngrok and used it to handle the redirect callback. The ngrok domain pointed to a Flask server running locally. Finally, managing the authorization code, access token, and refresh token was performed by adding `requests-oauthlib` as a dependency to the project.
 
@@ -101,7 +101,7 @@ I developed `list_all_subcategories.py` to systematically explore MercadoLibre's
 
 **API endpoint limitations**
 
-Initial attempts to use category-filtered search endpoints (`/site/$SITE_ID/items/search?category=$CATEGORY` and `/site/$SITE_ID/items/search?q=$QUERY`) consistently returned 403 Forbidden errors. After extensive testing with different authentication approaches and request parameters, I concluded that these endpoints were likely restricted for the application permissions available, and a different approach was needed.
+Initial attempts to use category-filtered search endpoints (`/site/$SITE_ID/items/search?category=$CATEGORY` and `/site/$SITE_ID/items/search?q=$QUERY`) consistently returned 403 Forbidden errors. After extensive testing with different authentication approaches and request parameters, I concluded that these endpoints were likely unavailable with the current application permissions, and a different approach was needed.
 
 **Alternative search strategy**
 
@@ -263,7 +263,7 @@ The data collection layer handles external data ingestion from MercadoLibre's AP
 
 #### AI Prediction Layer
 
-The Hazmat Agent coordinates classification workflow, managing batch processing and prompt construction. The agent performs hazmat classification with human-readable explanations. The RAG System enhances accuracy by retrieving similar labeled products using an embedding model and a vector store for semantic similarity search.
+The Hazmat Agent coordinates the classification workflow, managing batch processing and prompt construction. The agent performs hazmat classification with human-readable explanations. The RAG System enhances accuracy by retrieving similar labeled products using an embedding model and a vector store for semantic similarity search.
 
 #### Evaluation Layer
 
@@ -285,7 +285,7 @@ Product data flows from MercadoLibre API → Data Collection → AI Prediction (
 
 ### RAG Enhancement Architecture
 
-The Retrieval-Augmented Generation component addresses the gap between general LLM knowledge and domain-specific nuances in MercadoLibre's product catalog. While Gemini 2.5 Flash Lite demonstrates strong understanding of hazmat concepts generally, human expertise can be leveraged from specific examples and edge cases encountered in real product data.
+The Retrieval-Augmented Generation component addresses the gap between general LLM knowledge and domain-specific nuances in MercadoLibre's product catalog. While Gemini 2.5 Flash Lite demonstrates strong understanding of hazmat concepts generally, human expertise can be leveraged through specific examples and edge cases encountered in real product data.
 
 The system implements a knowledge base using ChromaDB and LangChain that stores human-labeled (or, in this case, ground truth) examples of hazmat and non-hazmat products:
 
@@ -302,11 +302,11 @@ similar_examples = example_store.retrieve(input_item, count=3)
 
 During classification, the system first retrieves similar products from the knowledge base that have been manually labeled. The LLM then leverages these concrete examples to inform classification decisions.
 
-Key benefits include improved accuracy through human expertise integration, enhanced consistency through similar product handling, and simplified knowledge updates through example addition without model retraining.
+Key benefits include integrating human expertise to improve accuracy, handling similar products consistently, and updating knowledge easily by adding new examples instead of retraining.
 
 ### Structured Prompting
 
-The prompting structure is designed to list out the most important hazmat categories and traits, and then provide a list of examples of hazmat and non-hazmat products obtained via the RAG system (if enabled). The LLM is then instructed to use the examples to inform its classification decision.
+The prompting structure is designed to enumerate the most important hazmat categories and traits, and then provide a list of examples of hazmat and non-hazmat products obtained via the RAG system (if enabled). The LLM is then instructed to use the examples to inform its classification decision.
 
 ```python
 def get_system_prompt(self, include_examples_rag: bool = False) -> str:
@@ -342,7 +342,7 @@ The RAG knowledge base serves as an external memory system that persists across 
 
 ### Human Expert Integration
 
-The system is able to integrate human expertise through a continuous feedback loop that leverages domain knowledge to improve classification accuracy. Domain experts contribute to the system by providing labeled examples that are added to the RAG knowledge base.
+The system is able to integrate human expertise through a continuous feedback loop that leverages domain knowledge to improve classification accuracy. Domain experts contribute by providing labeled examples that are added to the RAG knowledge base.
 
 ```python
 # Human experts provide labeled examples
@@ -393,26 +393,26 @@ Several bottlenecks were identified during the development of this project, and 
 
 ### Multi-Modal Analysis
 
-This project only uses text data primarily for simplicity and cost-effectiveness, but analyzing product images could be a great way to improve the accuracy of the system.
+This project currently uses only text data, primarily for simplicity and cost-effectiveness. However, analyzing product images could significantly improve the classification accuracy, especially since several LLMs are now multi-modal.
 
 ### Knowledge Base
 
-Currently, knowledge is added to the system by contributing to the RAG vector store. However, it does not include normative or technical information that could be used to improve the accuracy of the system. Such documents could be made available through the Model Context Protocol (MCP) for the LLM to use. Having a document store that is updated regularly would be another great way to improve the accuracy of the system, allowing human expertise to be integrated into the system in another way.
+Currently, knowledge is added to the system via contributions to the RAG vector store. However, it does not include normative or technical information that could further improve accuracy. Such documents could be made available to the LLM through the Model Context Protocol (MCP). Maintaining a document store that is updated regularly would be another effective way to enhance accuracy and integrate human expertise.
 
 ### Hallucination Control Techniques
 
-One technique to mitigate hallucination is to require the classification agent to provide a list of the sources of the information it used to make the prediction. This evidence list could be used to audit the system and ensure that it is not hallucinating. For example, the Judge LLM pattern is a great way to do this: another agent would be responsible for auditing the evidence list and checking that the sources are sufficient and relevant for the prediction.
+One technique to mitigate hallucination is to require the classification agent to provide a list of the sources it used to make its prediction. This evidence list can then be audited to ensure the system is not hallucinating. For example, the Judge LLM pattern achieves this by introducing another agent responsible for reviewing the evidence list and verifying that the sources are sufficient and relevant.
 
 ## Conclusion
 
-This technical challenge demonstrates a working proof-of-concept for hazmat detection that successfully addresses the key requirements outlined by MercadoLibre. While not production-ready, the solution showcases a solid foundation that could be evolved into a production system with additional engineering effort.
+This technical challenge demonstrates a working proof-of-concept for hazmat detection that successfully addresses the key requirements defined by MercadoLibre. While not yet production-ready, the solution provides a solid foundation that could be evolved into a production system with additional engineering effort.
 
 **Key Accomplishments:**
 
-- Successfully collected 100,000 real products from MercadoLibre's API, overcoming significant technical challenges including OAuth limitations and endpoint restrictions
+- Successfully collected 100,000 real products from MercadoLibre's API, overcoming significant technical challenges such as OAuth limitations and endpoint restrictions
 - Built a functional LLM-based classification system achieving 97.3% accuracy on definitive hazmat cases without fine-tuning
-- Developed a simple but effective evaluation methodology using product attributes as ground truth, enabling reliable performance assessment without manual labeling
-- Implemented RAG architecture to enhance classification with domain-specific examples
-- Created comprehensive documentation of the approach, challenges, and architectural decisions
+- Developed a simple yet effective evaluation methodology using product attributes as ground truth, enabling reliable performance assessment without manual labeling
+- Implemented a RAG architecture to enhance classification with domain-specific examples
+- Produced comprehensive documentation of the approach, challenges, and architectural decisions
 
-While this implementation serves as a strong proof-of-concept, transitioning to production would require additional work including robust monitoring, error handling, scalability optimizations, and comprehensive testing. The foundation established here provides a clear path forward for building a production-grade hazmat detection system.
+The foundation established here provides a clear path forward for building a production-grade hazmat detection system.
