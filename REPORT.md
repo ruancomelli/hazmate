@@ -25,8 +25,6 @@ I built a classification system using Large Language Models (LLMs) optionally en
 - Achieved 97.3% accuracy on definitive hazmat items (identified through product attributes) without RAG.
 - Developed an evaluation strategy using MercadoLibre's own product attributes as ground truth, allowing reliable assessment of model performance without time-consuming manual labeling.
 
----
-
 ## Setup Instructions
 
 **Prerequisites:**
@@ -64,8 +62,6 @@ bash scripts/start_ngrok.sh
 **Run examples:**
 
 Example scripts are available in the [`examples/`](https://github.com/ruancomelli/hazmate/tree/main/examples) directory. Each example can be run using `uv run examples/<example_name>`.
-
----
 
 ## Development Process
 
@@ -149,8 +145,6 @@ The balanced small dataset provides precise distribution statistics across categ
 
 Examples of the outputs of each endpoint can be found in the [`examples/queries/`](https://github.com/ruancomelli/hazmate/tree/main/examples/queries) directory. Each example can be run using `uv run examples/queries/<example_name>`.
 
----
-
 ### Building the Classification System
 
 #### Model architecture selection: LLMs vs traditional ML
@@ -208,9 +202,7 @@ uv run scripts/convert_jsonl_to_csv.py \
     data/predictions/full_gemini-2.5-flash-lite_v1.csv
 ```
 
----
-
-### Evaluating predictions
+### Evaluating Predictions
 
 In order to reliably evaluate the performance of the classification system, a ground truth dataset is needed. However, pre-labeled datasets for this domain are not readily available, and manually labeling 100,000 products was not feasible in the time available.
 
@@ -253,15 +245,13 @@ Accuracy: 97.3%
 
 ### RAG
 
-I implemented a RAG-based approach to enhance the classification system.
+I implemented a RAG-based approach to enhance the classification system, though it was limited by API constraints.
 
 The RAG system is implemented using ChromaDB and LangChain. The system retrieves similar products from the knowledge base that have been manually labeled by domain experts - or, in this case, the ground truth dataset. The LLM then leverages these concrete examples to inform classification decisions.
 
-However, I very quickly ran into daily rate limits of the APIs of all the providers I tried (OpenAI, Anthropic, Google), making it impractical to use for this project.
+However, I very quickly ran into daily rate limits of the APIs of all the providers I tried (OpenAI, Anthropic, Google), making it impractical to use for the full 100,000-item dataset. The RAG implementation works correctly for smaller batches and serves as a proof-of-concept for future production implementations with proper API quotas.
 
 An example of the RAG-enhanced predictions can be found in the [`examples/agents/agent.py`](https://github.com/ruancomelli/hazmate/blob/main/examples/agents/agent.py) script, and an example of the "examples store" can be found in the [`examples/agents/examples_store/`](https://github.com/ruancomelli/hazmate/tree/main/examples/agents/examples_store) directory.
-
----
 
 ## System Architecture
 
@@ -291,11 +281,9 @@ Product data flows from MercadoLibre API → Data Collection → AI Prediction (
 - **Storage**: Input datasets, predictions with traceability, expert examples, and quality metrics
 - **Vector Database**: ChromaDB for efficient similarity search and retrieval
 
----
-
 ## Technical Implementation Details
 
-### RAG enhancement architecture
+### RAG Enhancement Architecture
 
 The Retrieval-Augmented Generation component addresses the gap between general LLM knowledge and domain-specific nuances in MercadoLibre's product catalog. While Gemini 2.5 Flash Lite demonstrates strong understanding of hazmat concepts generally, human expertise can be leveraged from specific examples and edge cases encountered in real product data.
 
@@ -313,6 +301,7 @@ similar_examples = example_store.retrieve(input_item, count=3)
 ```
 
 During classification, the system first retrieves similar products from the knowledge base that have been manually labeled. The LLM then leverages these concrete examples to inform classification decisions.
+
 Key benefits include improved accuracy through human expertise integration, enhanced consistency through similar product handling, and simplified knowledge updates through example addition without model retraining.
 
 ### Structured Prompting
@@ -402,7 +391,7 @@ Several bottlenecks were identified during the development of this project, and 
 
 ## Future Enhancements
 
-### Multi-modal Analysis
+### Multi-Modal Analysis
 
 This project only uses text data primarily for simplicity and cost-effectiveness, but analyzing product images could be a great way to improve the accuracy of the system.
 
@@ -413,8 +402,6 @@ Currently, knowledge is added to the system by contributing to the RAG vector st
 ### Hallucination Control Techniques
 
 One technique to mitigate hallucination is to require the classification agent to provide a list of the sources of the information it used to make the prediction. This evidence list could be used to audit the system and ensure that it is not hallucinating. For example, the Judge LLM pattern is a great way to do this: another agent would be responsible for auditing the evidence list and checking that the sources are sufficient and relevant for the prediction.
-
----
 
 ## Conclusion
 
